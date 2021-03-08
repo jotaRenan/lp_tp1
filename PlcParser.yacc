@@ -21,11 +21,10 @@
     | EOF
     
 
-%nonterm Prog of expr | Expr of expr | AtomExpr of plcVal | App of expr
-    | Decl of expr | Const of expr
+%nonterm Prog of expr | Expr of expr | AtomExpr of expr | Const of expr
 
 %right SEMIC
-%left PLUS MINUS
+%left PLUS MINUS MULTI DIV
 
 %eop EOF
 
@@ -42,10 +41,11 @@ Expr : AtomExpr (AtomExpr)
     | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
     | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
     | Expr EQ Expr (Prim2("=", Expr1, Expr2))
+    | Expr MULTI Expr (Prim2("*", Expr1, Expr2))
+    | Expr DIV Expr (Prim2("/", Expr1, Expr2))
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
-    | LB Prog RB Prog(Prog)
-    | LPAREN Expr RPAREN Expr(Expr)
+    | LPAREN Expr RPAREN (Expr)
 
-Const : CINT (IntV(CINT))
+Const : CINT (ConI(CINT))

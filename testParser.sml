@@ -20,6 +20,8 @@ open PlcFrontEnd;
 
 fromString "15";
 fromString "true";
+fromString "15+3";
+fromString "15*3";
 fromString "()";
 fromString "(6,false)[1]";
 fromString "([Bool] [])";

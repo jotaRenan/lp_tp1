@@ -15,43 +15,69 @@ structure Token = Token
 local open LrTable in 
 val table=let val actionRows =
 "\
-\\001\000\000\000\
-\\001\000\001\000\014\000\016\000\007\000\017\000\006\000\021\000\005\000\000\000\
-\\001\000\002\000\004\000\000\000\
-\\001\000\021\000\012\000\000\000\
-\\001\000\039\000\008\000\000\000\
+\\001\000\001\000\025\000\016\000\014\000\017\000\013\000\018\000\012\000\
+\\019\000\011\000\021\000\010\000\000\000\
+\\001\000\002\000\009\000\030\000\008\000\039\000\007\000\040\000\006\000\000\000\
+\\001\000\016\000\014\000\017\000\013\000\018\000\012\000\019\000\011\000\
+\\021\000\010\000\031\000\022\000\000\000\
+\\001\000\021\000\023\000\000\000\
+\\001\000\030\000\008\000\039\000\007\000\040\000\006\000\000\000\
+\\001\000\039\000\016\000\000\000\
 \\001\000\041\000\000\000\000\000\
-\\017\000\016\000\007\000\017\000\006\000\021\000\005\000\000\000\
-\\018\000\000\000\
-\\019\000\021\000\005\000\000\000\
-\\020\000\021\000\005\000\000\000\
-\\021\000\016\000\007\000\017\000\006\000\021\000\005\000\000\000\
+\\028\000\016\000\014\000\017\000\013\000\018\000\012\000\019\000\011\000\
+\\021\000\010\000\000\000\
+\\029\000\000\000\
+\\030\000\000\000\
+\\031\000\021\000\010\000\000\000\
+\\032\000\021\000\010\000\000\000\
+\\033\000\016\000\014\000\017\000\013\000\018\000\012\000\019\000\011\000\
+\\021\000\010\000\000\000\
+\\034\000\021\000\010\000\000\000\
+\\035\000\021\000\010\000\000\000\
+\\036\000\000\000\
+\\037\000\000\000\
+\\038\000\000\000\
+\\039\000\000\000\
 \"
 val actionRowNumbers =
-"\002\000\006\000\004\000\000\000\
-\\000\000\000\000\003\000\010\000\
-\\009\000\008\000\000\000\001\000\
-\\002\000\007\000\005\000"
+"\001\000\015\000\009\000\007\000\
+\\018\000\016\000\004\000\005\000\
+\\004\000\004\000\004\000\004\000\
+\\004\000\002\000\003\000\012\000\
+\\014\000\013\000\011\000\010\000\
+\\017\000\004\000\000\000\001\000\
+\\008\000\006\000"
 val gotoT =
 "\
-\\001\000\014\000\002\000\001\000\000\000\
-\\000\000\
-\\000\000\
-\\002\000\007\000\000\000\
-\\002\000\008\000\000\000\
-\\002\000\009\000\000\000\
+\\001\000\025\000\002\000\003\000\003\000\002\000\004\000\001\000\000\000\
 \\000\000\
 \\000\000\
 \\000\000\
 \\000\000\
-\\002\000\011\000\000\000\
 \\000\000\
-\\001\000\013\000\002\000\001\000\000\000\
+\\002\000\013\000\003\000\002\000\004\000\001\000\000\000\
+\\000\000\
+\\002\000\015\000\003\000\002\000\004\000\001\000\000\000\
+\\002\000\016\000\003\000\002\000\004\000\001\000\000\000\
+\\002\000\017\000\003\000\002\000\004\000\001\000\000\000\
+\\002\000\018\000\003\000\002\000\004\000\001\000\000\000\
+\\002\000\019\000\003\000\002\000\004\000\001\000\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\000\000\
+\\002\000\022\000\003\000\002\000\004\000\001\000\000\000\
+\\000\000\
+\\001\000\024\000\002\000\003\000\003\000\002\000\004\000\001\000\000\000\
 \\000\000\
 \\000\000\
 \"
-val numstates = 15
-val numrules = 5
+val numstates = 26
+val numrules = 12
 val s = ref "" and index = ref 0
 val string_to_int = fn () => 
 let val i = !index
@@ -115,8 +141,7 @@ structure MlyValue =
 struct
 datatype svalue = VOID | ntVOID of unit ->  unit
  | CINT of unit ->  (int) | NAME of unit ->  (string)
- | Const of unit ->  (expr) | Decl of unit ->  (expr)
- | App of unit ->  (expr) | AtomExpr of unit ->  (plcVal)
+ | Const of unit ->  (expr) | AtomExpr of unit ->  (expr)
  | Expr of unit ->  (expr) | Prog of unit ->  (expr)
 end
 type svalue = MlyValue.svalue
@@ -212,7 +237,15 @@ MlyValue.Prog (fn _ => let val  (NAME as NAME1) = NAME1 ()
 end)
  in ( LrTable.NT 0, ( result, VAR1left, Prog1right), rest671)
 end
-|  ( 2, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
+|  ( 2, ( ( _, ( MlyValue.AtomExpr AtomExpr1, AtomExpr1left, 
+AtomExpr1right)) :: rest671)) => let val  result = MlyValue.Expr (fn _
+ => let val  (AtomExpr as AtomExpr1) = AtomExpr1 ()
+ in (AtomExpr)
+end)
+ in ( LrTable.NT 1, ( result, AtomExpr1left, AtomExpr1right), rest671)
+
+end
+|  ( 3, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
 MlyValue.Expr Expr1, Expr1left, _)) :: rest671)) => let val  result = 
 MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
  val  Expr2 = Expr2 ()
@@ -220,7 +253,7 @@ MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
 end)
  in ( LrTable.NT 1, ( result, Expr1left, Expr2right), rest671)
 end
-|  ( 3, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
+|  ( 4, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
 MlyValue.Expr Expr1, Expr1left, _)) :: rest671)) => let val  result = 
 MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
  val  Expr2 = Expr2 ()
@@ -228,13 +261,57 @@ MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
 end)
  in ( LrTable.NT 1, ( result, Expr1left, Expr2right), rest671)
 end
-|  ( 4, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
+|  ( 5, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
 MlyValue.Expr Expr1, Expr1left, _)) :: rest671)) => let val  result = 
 MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
  val  Expr2 = Expr2 ()
  in (Prim2("=", Expr1, Expr2))
 end)
  in ( LrTable.NT 1, ( result, Expr1left, Expr2right), rest671)
+end
+|  ( 6, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
+MlyValue.Expr Expr1, Expr1left, _)) :: rest671)) => let val  result = 
+MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
+ val  Expr2 = Expr2 ()
+ in (Prim2("*", Expr1, Expr2))
+end)
+ in ( LrTable.NT 1, ( result, Expr1left, Expr2right), rest671)
+end
+|  ( 7, ( ( _, ( MlyValue.Expr Expr2, _, Expr2right)) :: _ :: ( _, ( 
+MlyValue.Expr Expr1, Expr1left, _)) :: rest671)) => let val  result = 
+MlyValue.Expr (fn _ => let val  Expr1 = Expr1 ()
+ val  Expr2 = Expr2 ()
+ in (Prim2("/", Expr1, Expr2))
+end)
+ in ( LrTable.NT 1, ( result, Expr1left, Expr2right), rest671)
+end
+|  ( 8, ( ( _, ( MlyValue.Const Const1, Const1left, Const1right)) :: 
+rest671)) => let val  result = MlyValue.AtomExpr (fn _ => let val  (
+Const as Const1) = Const1 ()
+ in (Const)
+end)
+ in ( LrTable.NT 2, ( result, Const1left, Const1right), rest671)
+end
+|  ( 9, ( ( _, ( MlyValue.NAME NAME1, NAME1left, NAME1right)) :: 
+rest671)) => let val  result = MlyValue.AtomExpr (fn _ => let val  (
+NAME as NAME1) = NAME1 ()
+ in (Var(NAME))
+end)
+ in ( LrTable.NT 2, ( result, NAME1left, NAME1right), rest671)
+end
+|  ( 10, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.Expr Expr1,
+ _, _)) :: ( _, ( _, LPAREN1left, _)) :: rest671)) => let val  result
+ = MlyValue.AtomExpr (fn _ => let val  (Expr as Expr1) = Expr1 ()
+ in (Expr)
+end)
+ in ( LrTable.NT 2, ( result, LPAREN1left, RPAREN1right), rest671)
+end
+|  ( 11, ( ( _, ( MlyValue.CINT CINT1, CINT1left, CINT1right)) :: 
+rest671)) => let val  result = MlyValue.Const (fn _ => let val  (CINT
+ as CINT1) = CINT1 ()
+ in (ConI(CINT))
+end)
+ in ( LrTable.NT 3, ( result, CINT1left, CINT1right), rest671)
 end
 | _ => raise (mlyAction i392)
 end

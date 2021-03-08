@@ -59,4 +59,6 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 "/" => (DIV(yypos, yypos));
 ";" => (SEMIC(yypos, yypos));
 "=" => (EQ(yypos, yypos));
+"(" => (LPAREN(yypos, yypos));
+")" => (RPAREN(yypos, yypos));
 . => (error("error"); raise Fail("error"));
