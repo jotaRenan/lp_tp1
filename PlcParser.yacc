@@ -23,7 +23,8 @@
     
 
 %nonterm Prog of expr | Expr of expr | AtomExpr of expr | Const of expr | Decl of expr
-    | TypedVar of expr | AppExpr of expr | Type of plcType | Types of plcType list | AtomType of plcType
+    | TypedVar of plcType * string | AppExpr of expr | Type of plcType | Types of plcType list 
+    | AtomType of plcType | Params of plcType list
 
 %right SEMIC THINARR CSEQ
 %left PLUS MINUS MULTI DIV LT LTE EQ NEQ AND ELSE LSB
@@ -72,14 +73,23 @@ AtomExpr : Const (Const)
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
-
 Const : CINT (ConI(CINT))
     | FALSE (ConB(false))
     | FALSE (ConB(true))
-    | LPAREN RPAREN (ListT [])
-    | LPAREN Type LSB RSB RPAREN (SeqT(Type))
+    | LPAREN RPAREN (List([]))
+    | LPAREN LSB Type RSB LSB RSB RPAREN (ESeq(Type))
 
-Comps : Expr COMMA Expr
-    | Expr COMMA Comps
+Type : AtomType (AtomType)
+    | LPAREN Types RPAREN (ListT(Types))
+    | LSB Type RSB (SeqT(Type))
+    | Type THINARR Type (FunT(Type1, Type2))
 
-TypedVar : Type NAME ()
+AtomType : NIL (ListT([]))
+    | BOOL (BoolT)
+    | INT (IntT)
+    | LPAREN Type RPAREN (Type)
+
+Types : Type COMMA Type (Type1::Type2::[])
+    | Type COMMA Types (Type::Types)
+
+
