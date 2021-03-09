@@ -34,6 +34,9 @@ val PRINT:  'a * 'a -> (svalue,'a) token
 val ISE:  'a * 'a -> (svalue,'a) token
 val TAIL:  'a * 'a -> (svalue,'a) token
 val HEAD:  'a * 'a -> (svalue,'a) token
+val NIL:  'a * 'a -> (svalue,'a) token
+val INT:  'a * 'a -> (svalue,'a) token
+val BOOL:  'a * 'a -> (svalue,'a) token
 val EXC:  'a * 'a -> (svalue,'a) token
 val WITH:  'a * 'a -> (svalue,'a) token
 val MATCH:  'a * 'a -> (svalue,'a) token

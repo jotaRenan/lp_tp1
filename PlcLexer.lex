@@ -10,26 +10,26 @@ type lexresult = (slvalue, pos)token
 
 fun keyword (s, lpos, rpos) = 
     case s of  
-        "Bool" => raise Fail("tem q fazer ainda")
+        "Bool" => BOOL (lpos, rpos)
         | "else" => ELSE (lpos, rpos)
-        | "end" => raise Fail("tem q fazer ainda")
-        | "false" => FALSE(lpos, rpos)
-        | "fn" => raise Fail("tem q fazer ainda")
+        | "end" => END (lpos, rpos)
+        | "false" => FALSE (lpos, rpos)
+        | "fn" => FN (lpos, rpos)
         | "fun" => FUN (lpos, rpos)
-        | "hd" => raise Fail("tem q fazer ainda")
+        | "hd" => HEAD(lpos, rpos)
         | "if" => IF (lpos, rpos)
-        | "Int" => raise Fail("tem q fazer ainda")
-        | "ise" => raise Fail("tem q fazer ainda")
-        | "match" => raise Fail("tem q fazer ainda")
-        | "Nil" => raise Fail("tem q fazer ainda")
+        | "Int" => INT (lpos, rpos)
+        | "ise" => ISE (lpos, rpos)
+        | "match" => MATCH (lpos, rpos)
+        | "Nil" => NIL (lpos, rpos)
         | "print" => PRINT (lpos, rpos)
         | "rec" => FUNREC (lpos, rpos)
         | "then" => THEN (lpos, rpos)
-        | "tl" => raise Fail("tem q fazer ainda")
+        | "tl" => TAIL (lpos, rpos)
         | "true" => TRUE(lpos, rpos)
         | "var" => VAR (lpos, rpos)
-        | "with" => raise Fail("tem q fazer ainda")
-        | "_" => raise Fail("tem q fazer ainda")
+        | "with" => WITH (lpos, rpos)
+        | "_" => UNDER (lpos, rpos)
         | _ => NAME (s, lpos, rpos)
 
 (* A function to print a message error on the screen. *)
@@ -78,4 +78,5 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 "!=" => (NEQ(yypos, yypos));
 "<" => (LT(yypos, yypos));
 "<=" => (LTE(yypos, yypos));
+"!" => (EXC(yypos, yypos));
 . => (error("error"); raise Fail("error"));

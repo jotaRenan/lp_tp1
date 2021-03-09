@@ -14,26 +14,26 @@ type lexresult = (slvalue, pos)token
 
 fun keyword (s, lpos, rpos) = 
     case s of  
-        "Bool" => raise Fail("tem q fazer ainda")
+        "Bool" => BOOL (lpos, rpos)
         | "else" => ELSE (lpos, rpos)
-        | "end" => raise Fail("tem q fazer ainda")
-        | "false" => FALSE(lpos, rpos)
-        | "fn" => raise Fail("tem q fazer ainda")
+        | "end" => END (lpos, rpos)
+        | "false" => FALSE (lpos, rpos)
+        | "fn" => FN (lpos, rpos)
         | "fun" => FUN (lpos, rpos)
-        | "hd" => raise Fail("tem q fazer ainda")
+        | "hd" => HEAD(lpos, rpos)
         | "if" => IF (lpos, rpos)
-        | "Int" => raise Fail("tem q fazer ainda")
-        | "ise" => raise Fail("tem q fazer ainda")
-        | "match" => raise Fail("tem q fazer ainda")
-        | "Nil" => raise Fail("tem q fazer ainda")
+        | "Int" => INT (lpos, rpos)
+        | "ise" => ISE (lpos, rpos)
+        | "match" => MATCH (lpos, rpos)
+        | "Nil" => NIL (lpos, rpos)
         | "print" => PRINT (lpos, rpos)
         | "rec" => FUNREC (lpos, rpos)
         | "then" => THEN (lpos, rpos)
-        | "tl" => raise Fail("tem q fazer ainda")
+        | "tl" => TAIL (lpos, rpos)
         | "true" => TRUE(lpos, rpos)
         | "var" => VAR (lpos, rpos)
-        | "with" => raise Fail("tem q fazer ainda")
-        | "_" => raise Fail("tem q fazer ainda")
+        | "with" => WITH (lpos, rpos)
+        | "_" => UNDER (lpos, rpos)
         | _ => NAME (s, lpos, rpos)
 
 (* A function to print a message error on the screen. *)
@@ -167,26 +167,26 @@ in Vector.fromList(List.map g
 [{fin = [], trans = 0},
 {fin = [], trans = 1},
 {fin = [], trans = 1},
-{fin = [(N 39)], trans = 0},
-{fin = [(N 10),(N 39)], trans = 4},
+{fin = [(N 41)], trans = 0},
+{fin = [(N 10),(N 41)], trans = 4},
 {fin = [(N 10)], trans = 4},
-{fin = [(N 22),(N 39)], trans = 0},
-{fin = [(N 34),(N 39)], trans = 7},
+{fin = [(N 22),(N 41)], trans = 0},
+{fin = [(N 34),(N 41)], trans = 7},
 {fin = [(N 37)], trans = 0},
-{fin = [(N 20),(N 39)], trans = 0},
-{fin = [(N 7),(N 39)], trans = 10},
+{fin = [(N 20),(N 41)], trans = 0},
+{fin = [(N 7),(N 41)], trans = 10},
 {fin = [(N 7)], trans = 10},
-{fin = [(N 18),(N 39)], trans = 0},
-{fin = [(N 14),(N 39)], trans = 0},
-{fin = [(N 12),(N 39)], trans = 0},
-{fin = [(N 16),(N 39)], trans = 0},
-{fin = [(N 26),(N 39)], trans = 0},
-{fin = [(N 24),(N 39)], trans = 0},
-{fin = [(N 39)], trans = 18},
+{fin = [(N 18),(N 41)], trans = 0},
+{fin = [(N 14),(N 41)], trans = 0},
+{fin = [(N 12),(N 41)], trans = 0},
+{fin = [(N 16),(N 41)], trans = 0},
+{fin = [(N 26),(N 41)], trans = 0},
+{fin = [(N 24),(N 41)], trans = 0},
+{fin = [(N 41)], trans = 18},
 {fin = [(N 29)], trans = 0},
-{fin = [(N 39)], trans = 20},
+{fin = [(N 39),(N 41)], trans = 20},
 {fin = [(N 32)], trans = 0},
-{fin = [(N 4),(N 39)], trans = 22},
+{fin = [(N 4),(N 41)], trans = 22},
 {fin = [(N 4)], trans = 22},
 {fin = [(N 1)], trans = 0}])
 end
@@ -244,8 +244,9 @@ let fun continue() = lex() in
 | 32 => (NEQ(yypos, yypos))
 | 34 => (LT(yypos, yypos))
 | 37 => (LTE(yypos, yypos))
-| 39 => (error("error"); raise Fail("error"))
+| 39 => (EXC(yypos, yypos))
 | 4 => (lex())
+| 41 => (error("error"); raise Fail("error"))
 | 7 => let val yytext=yymktext() in CINT(strToInt(yytext), yypos, yypos) end
 | _ => raise Internal.LexerError
 
