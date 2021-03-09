@@ -3,6 +3,8 @@ sig
 type ('a,'b) token
 type svalue
 val EOF:  'a * 'a -> (svalue,'a) token
+val FALSE:  'a * 'a -> (svalue,'a) token
+val TRUE:  'a * 'a -> (svalue,'a) token
 val CINT: (int) *  'a * 'a -> (svalue,'a) token
 val NAME: (string) *  'a * 'a -> (svalue,'a) token
 val UNDER:  'a * 'a -> (svalue,'a) token

@@ -10,13 +10,26 @@ type lexresult = (slvalue, pos)token
 
 fun keyword (s, lpos, rpos) = 
     case s of  
-        "var" => VAR (lpos, rpos)
-        | "fun" => FUN (lpos, rpos)
-        | "rec" => FUNREC (lpos, rpos)
-        | "if" => IF (lpos, rpos)
-        | "then" => THEN (lpos, rpos)
+        "Bool" => raise Fail("tem q fazer ainda")
         | "else" => ELSE (lpos, rpos)
+        | "end" => raise Fail("tem q fazer ainda")
+        | "false" => FALSE(lpos, rpos)
+        | "fn" => raise Fail("tem q fazer ainda")
+        | "fun" => FUN (lpos, rpos)
+        | "hd" => raise Fail("tem q fazer ainda")
+        | "if" => IF (lpos, rpos)
+        | "Int" => raise Fail("tem q fazer ainda")
+        | "ise" => raise Fail("tem q fazer ainda")
+        | "match" => raise Fail("tem q fazer ainda")
+        | "Nil" => raise Fail("tem q fazer ainda")
         | "print" => PRINT (lpos, rpos)
+        | "rec" => FUNREC (lpos, rpos)
+        | "then" => THEN (lpos, rpos)
+        | "tl" => raise Fail("tem q fazer ainda")
+        | "true" => TRUE(lpos, rpos)
+        | "var" => VAR (lpos, rpos)
+        | "with" => raise Fail("tem q fazer ainda")
+        | "_" => raise Fail("tem q fazer ainda")
         | _ => NAME (s, lpos, rpos)
 
 (* A function to print a message error on the screen. *)
@@ -61,4 +74,8 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 "=" => (EQ(yypos, yypos));
 "(" => (LPAREN(yypos, yypos));
 ")" => (RPAREN(yypos, yypos));
+"&&" => (AND(yypos, yypos));
+"!=" => (NEQ(yypos, yypos));
+"<" => (LT(yypos, yypos));
+"<=" => (LTE(yypos, yypos));
 . => (error("error"); raise Fail("error"));
