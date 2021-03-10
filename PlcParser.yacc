@@ -24,7 +24,7 @@
 
 %nonterm Prog of expr | Expr of expr | AtomExpr of expr | Const of expr | Decl of expr
     | TypedVar of plcType * string | AppExpr of expr | Type of plcType | Types of plcType list 
-    | AtomType of plcType | Params of plcType list | Comps of expr list
+    | AtomType of plcType | Params of (plcType * string) list | Comps of expr list
 
 %right SEMIC THINARR CSEQ
 %left PLUS MINUS MULTI DIV LT LTE EQ NEQ AND ELSE LSB
@@ -100,4 +100,5 @@ Types : Type COMMA Type (Type1::Type2::[])
 
 TypedVar : Type NAME (Type, NAME)
 
-
+Params : TypedVar (TypedVar::[])
+    | TypedVar COMMA Params (TypedVar::Params)

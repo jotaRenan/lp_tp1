@@ -272,7 +272,7 @@ val gotoT =
 \\000\000\
 \"
 val numstates = 97
-val numrules = 50
+val numrules = 52
 val s = ref "" and index = ref 0
 val string_to_int = fn () => 
 let val i = !index
@@ -336,7 +336,8 @@ structure MlyValue =
 struct
 datatype svalue = VOID | ntVOID of unit ->  unit
  | CINT of unit ->  (int) | NAME of unit ->  (string)
- | Comps of unit ->  (expr list) | Params of unit ->  (plcType list)
+ | Comps of unit ->  (expr list)
+ | Params of unit ->  ( ( plcType * string )  list)
  | AtomType of unit ->  (plcType) | Types of unit ->  (plcType list)
  | Type of unit ->  (plcType) | AppExpr of unit ->  (expr)
  | TypedVar of unit ->  (plcType*string) | Decl of unit ->  (expr)
@@ -785,6 +786,24 @@ MlyValue.TypedVar (fn _ => let val  (Type as Type1) = Type1 ()
  in (Type, NAME)
 end)
  in ( LrTable.NT 5, ( result, Type1left, NAME1right), rest671)
+end
+|  ( 50, ( ( _, ( MlyValue.TypedVar TypedVar1, TypedVar1left, 
+TypedVar1right)) :: rest671)) => let val  result = MlyValue.Params (fn
+ _ => let val  (TypedVar as TypedVar1) = TypedVar1 ()
+ in (TypedVar::[])
+end)
+ in ( LrTable.NT 10, ( result, TypedVar1left, TypedVar1right), rest671
+)
+end
+|  ( 51, ( ( _, ( MlyValue.Params Params1, _, Params1right)) :: _ :: (
+ _, ( MlyValue.TypedVar TypedVar1, TypedVar1left, _)) :: rest671)) =>
+ let val  result = MlyValue.Params (fn _ => let val  (TypedVar as 
+TypedVar1) = TypedVar1 ()
+ val  (Params as Params1) = Params1 ()
+ in (TypedVar::Params)
+end)
+ in ( LrTable.NT 10, ( result, TypedVar1left, Params1right), rest671)
+
 end
 | _ => raise (mlyAction i392)
 end

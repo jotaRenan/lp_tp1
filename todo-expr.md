@@ -1,5 +1,5 @@
 <expr> ::=
-| match <expr> with <matchexpr> match expression
+| <expr> [ <nat> ]
 
 MatchExpr : END
 | PIPE CondExpr THINARR Expr MatchExpr (CondExpr(CondExpr) Expr(Expr) MatchExpr(MatchExpr))
