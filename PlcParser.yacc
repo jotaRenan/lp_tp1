@@ -25,6 +25,8 @@
 %nonterm Prog of expr | Expr of expr | AtomExpr of expr | Const of expr | Decl of expr
     | TypedVar of plcType * string | AppExpr of expr | Type of plcType | Types of plcType list 
     | AtomType of plcType | Params of (plcType * string) list | Comps of expr list
+    | MatchExpr of (expr option * expr) list
+    | CondExpr of (expr option)
 
 %right SEMIC THINARR CSEQ
 %left PLUS MINUS MULTI DIV LT LTE EQ NEQ AND ELSE LSB
@@ -52,6 +54,7 @@ Expr : AtomExpr (AtomExpr)
     | Expr MULTI Expr (Prim2("*", Expr1, Expr2))
     | Expr DIV Expr (Prim2("/", Expr1, Expr2))
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
+    | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
     | Expr AND Expr (Prim2("&&", Expr1, Expr2))
     | Expr NEQ Expr (Prim2("!=", Expr1, Expr2))
     | Expr LT Expr (Prim2("<", Expr1, Expr2))
@@ -72,6 +75,12 @@ AtomExpr : Const (Const)
     | NAME (Var(NAME))
     | LPAREN Expr RPAREN (Expr)
     | LPAREN Comps RPAREN (List(Comps))
+
+MatchExpr : END ([])
+    | PIPE CondExpr THINARR Expr MatchExpr ((CondExpr, Expr)::MatchExpr)
+
+CondExpr : Expr (SOME Expr)
+    | UNDER (NONE)
 
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))

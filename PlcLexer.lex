@@ -30,6 +30,8 @@ fun keyword (s, lpos, rpos) =
         | "var" => VAR (lpos, rpos)
         | "with" => WITH (lpos, rpos)
         | "_" => UNDER (lpos, rpos)
+        | "|" => PIPE (lpos, rpos)
+        | "->" => THINARR (lpos, rpos)
         | _ => NAME (s, lpos, rpos)
 
 (* A function to print a message error on the screen. *)
@@ -83,4 +85,6 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 "<=" => (LTE(yypos, yypos));
 "!" => (EXC(yypos, yypos));
 "," => (COMMA(yypos, yypos));
+"|" => (PIPE(yypos, yypos));
+"->" => (THINARR(yypos, yypos));
 . => (error("\n***Lexer error: bad character ***\n"); raise Fail("Lexer error: bad character "^yytext));
