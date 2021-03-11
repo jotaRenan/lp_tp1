@@ -29,9 +29,6 @@ fun keyword (s, lpos, rpos) =
         | "true" => TRUE(lpos, rpos)
         | "var" => VAR (lpos, rpos)
         | "with" => WITH (lpos, rpos)
-        | "_" => UNDER (lpos, rpos)
-        | "|" => PIPE (lpos, rpos)
-        | "->" => THINARR (lpos, rpos)
         | _ => NAME (s, lpos, rpos)
 
 (* A function to print a message error on the screen. *)
@@ -79,6 +76,8 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 ")" => (RPAREN(yypos, yypos));
 "[" => (LSB(yypos, yypos));
 "]" => (RSB(yypos, yypos));
+"{" => (LB(yypos, yypos));
+"}" => (RB(yypos, yypos));
 "&&" => (AND(yypos, yypos));
 "!=" => (NEQ(yypos, yypos));
 "<" => (LT(yypos, yypos));
@@ -87,4 +86,6 @@ identifier=[a-zA-Z_][a-zA-Z_0-9]*;
 "," => (COMMA(yypos, yypos));
 "|" => (PIPE(yypos, yypos));
 "->" => (THINARR(yypos, yypos));
+"=>" => (FATARR(yypos, yypos));
+":" => (COL(yypos, yypos));
 . => (error("\n***Lexer error: bad character ***\n"); raise Fail("Lexer error: bad character "^yytext));

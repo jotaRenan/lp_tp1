@@ -25,8 +25,8 @@
 %nonterm Prog of expr | Expr of expr | AtomExpr of expr | Const of expr | Decl of expr
     | TypedVar of plcType * string | AppExpr of expr | Type of plcType | Types of plcType list 
     | AtomType of plcType | Params of (plcType * string) list | Comps of expr list
-    | MatchExpr of (expr option * expr) list
-    | CondExpr of (expr option)
+    | MatchExpr of (expr option * expr) list | CondExpr of (expr option) 
+    | Args of (plcType * string) list
 
 %right SEMIC THINARR CSEQ
 %left PLUS MINUS MULTI DIV LT LTE EQ NEQ AND ELSE LSB
@@ -44,37 +44,39 @@ Prog : Expr (Expr)
 
 
 Decl : VAR NAME EQ Expr SEMIC Prog (Let(NAME, Expr, Prog))
+    | FUN NAME Args EQ Expr SEMIC Prog (Let(NAME, makeAnon(Args, Expr), Prog))
+    | FUN FUNREC NAME Args COL Type EQ Expr SEMIC Prog (makeFun(NAME, Args, Type, Expr, Prog))
     
 
 Expr : AtomExpr (AtomExpr)
     | AppExpr (AppExpr)
-    | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
-    | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
-    | Expr EQ Expr (Prim2("=", Expr1, Expr2))
-    | Expr MULTI Expr (Prim2("*", Expr1, Expr2))
-    | Expr DIV Expr (Prim2("/", Expr1, Expr2))
     | IF Expr THEN Expr ELSE Expr (If(Expr1, Expr2, Expr3))
     | MATCH Expr WITH MatchExpr (Match(Expr, MatchExpr))
-    | Expr AND Expr (Prim2("&&", Expr1, Expr2))
-    | Expr NEQ Expr (Prim2("!=", Expr1, Expr2))
-    | Expr LT Expr (Prim2("<", Expr1, Expr2))
-    | Expr LTE Expr (Prim2("<=", Expr1, Expr2))
-    | MINUS Expr (Prim1("-", Expr))
-    | PRINT Expr (Prim1("print", Expr))
-    | FALSE (ConB(false))
-    | TRUE (ConB(true))
     | EXC Expr (Prim1("!", Expr))
+    | MINUS Expr (Prim1("-", Expr))
     | HEAD Expr (Prim1("hd", Expr))
     | TAIL Expr (Prim1("tl", Expr))
     | ISE Expr (Prim1("ise", Expr))
+    | PRINT Expr (Prim1("print", Expr))
+    | Expr AND Expr (Prim2("&&", Expr1, Expr2))
+    | Expr PLUS Expr (Prim2("+", Expr1, Expr2))
+    | Expr MINUS Expr (Prim2("-", Expr1, Expr2))
+    | Expr MULTI Expr (Prim2("*", Expr1, Expr2))
+    | Expr DIV Expr (Prim2("/", Expr1, Expr2))
+    | Expr EQ Expr (Prim2("=", Expr1, Expr2))
+    | Expr NEQ Expr (Prim2("!=", Expr1, Expr2))
     | Expr CSEQ Expr (Prim2("::", Expr1, Expr2))
+    | Expr LT Expr (Prim2("<", Expr1, Expr2))
+    | Expr LTE Expr (Prim2("<=", Expr1, Expr2))
     | Expr SEMIC Expr (Prim2(";", Expr1, Expr2))
     | Expr LSB CINT RSB (Item(CINT, Expr))
 
 AtomExpr : Const (Const)
     | NAME (Var(NAME))
+    | LB Prog RB (Prog)
     | LPAREN Expr RPAREN (Expr)
     | LPAREN Comps RPAREN (List(Comps))
+    | FN Args FATARR Expr END (makeAnon(Args, Expr))
 
 MatchExpr : END ([])
     | PIPE CondExpr THINARR Expr MatchExpr ((CondExpr, Expr)::MatchExpr)
@@ -85,9 +87,9 @@ CondExpr : Expr (SOME Expr)
 AppExpr : AtomExpr AtomExpr (Call(AtomExpr1, AtomExpr2))
     | AppExpr AtomExpr (Call(AppExpr, AtomExpr))
 
-Const : CINT (ConI(CINT))
-    | FALSE (ConB(false))
+Const : FALSE (ConB(false))
     | TRUE (ConB(true))
+    | CINT (ConI(CINT))
     | LPAREN RPAREN (List([]))
     | LPAREN LSB Type RSB LSB RSB RPAREN (ESeq(SeqT(Type)))
 
@@ -111,3 +113,6 @@ TypedVar : Type NAME (Type, NAME)
 
 Params : TypedVar (TypedVar::[])
     | TypedVar COMMA Params (TypedVar::Params)
+
+Args : LPAREN RPAREN ([])
+    | LPAREN Params RPAREN (Params)
