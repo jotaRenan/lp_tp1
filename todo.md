@@ -1,9 +1,9 @@
-primeira entrega:
-[ ] implementação parser
-[ ] PlcParserAux
-[ ] PlcParser.lex
-[ ] PlcParser.yacc
-[ ] implementação lexer
+Primeira entrega:
+[x] implementação parser
+[x] PlcParserAux
+[x] PlcParser.lex
+[x] PlcParser.yacc
+[x] implementação lexer
 
 [x] terminar decl
 [x] terminar expr
@@ -15,6 +15,6 @@ primeira entrega:
 [x] fazer params
 [x] fazer typed var
 
-segunda entrega:
+Segunda entrega:
 [ ] implementação PlcChecker (type checker)
 [ ] implementação PlcInterp (interpreter)
