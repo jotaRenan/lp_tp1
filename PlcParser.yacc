@@ -17,7 +17,7 @@
     | LSB | RSB | LB | RB | LPAREN | RPAREN
     | FN | FATARR | THINARR | END
     | COMMA | PIPE | UNDER
-    | NAME of string | CINT of int
+    | NAME of string | CINT of int 
     | TRUE | FALSE
     | EOF
     
@@ -28,8 +28,17 @@
     | MatchExpr of (expr option * expr) list | CondExpr of (expr option) 
     | Args of (plcType * string) list
 
-%right SEMIC THINARR CSEQ
-%left PLUS MINUS MULTI DIV LT LTE EQ NEQ AND ELSE LSB
+%right SEMIC THINARR 
+%nonassoc IF
+%left ELSE
+%left AND
+%left EQ NEQ
+%left LT LTE
+%right CSEQ
+%left PLUS MINUS
+%left MULTI DIV 
+%nonassoc EXC HEAD TAIL ISE PRINT NAME
+%left LSB
 
 %eop EOF
 
