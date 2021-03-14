@@ -91,8 +91,6 @@ fun teval(e: expr, ro: plcType env) : plcType =
         | Let(name, e1, e2) => teval(e2, (name, teval(e1, ro))::ro)
         | _ => raise UnknownType;
 
-fun tudoIgual (conds: (expr option * expr) list) = [] 
-
 
 val expr0 = List([ConI 11, ConI 9, ConI 29, ConB false]);
 val expr4 = Prim1("ise", List([ConI 11, ConI 9, ConI 29, ConB false]));
