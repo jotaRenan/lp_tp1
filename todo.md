@@ -1,20 +1,22 @@
-Primeira entrega:
-[x] implementação parser
-[x] PlcParserAux
-[x] PlcParser.lex
-[x] PlcParser.yacc
-[x] implementação lexer
-
-[x] terminar decl
-[x] terminar expr
-[x] terminar atomexpr
-[x] fazer comps
-[x] fazer matchexpr
-[x] fazer condexpr
-[x] fazer args
-[x] fazer params
-[x] fazer typed var
-
 Segunda entrega:
 [ ] implementação PlcChecker (type checker)
+    [ ] 1
+    [ ] 6
+    [ ] 7
+    [ ] 8
+    [ ] 9
+    [ ] 10
+    [ ] 11
+    [ ] 13
+    [ ] 16 
+    [ ] 17 
+    [ ] 18 
+    [ ] 19
+    [ ] 21
+    [ ] 24 *
+    [ ] 25
+    [ ] 26
+
 [ ] implementação PlcInterp (interpreter)
+
+
