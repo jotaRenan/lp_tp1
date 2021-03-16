@@ -18,25 +18,49 @@ exception ListOutOfRange
 exception OpNonList
 
 
+fun deconstructListT(t: plcType) : plcType list =
+    case t of 
+        ListT x => x
+        | _ => raise UnknownType
+
+
+(* 
+fun mapCondsToRetsTypes (ro: plcType env, conds: (expr option * expr) list) = 
+    map (fn (_, r) => teval(r, ro)) conds *)
+
+fun areAllRetTypesEqual (retTypes: plcType list) = foldl (fn (a, (areAllSame, t1)) => (areAllSame andalso t1 = a, t1)) (true, (hd retTypes)) retTypes;
+
 fun teval(e: expr, ro: plcType env) : plcType =
     case e of
         ConI _ => IntT
         | ConB _ => BoolT
         | Prim1("!", e1) => if teval(e1, ro) = BoolT then BoolT else raise NotEqTypes
-        (* | Prim1("hd", e1) => if teval(e1, ro) = then BoolT else raise NotEqTypes *)
+        | Prim1("hd", e1) => hd (deconstructListT(teval(e1, ro)))
+        | Prim1("tl", e1) => teval(e1, ro)
         | Prim2("&&", e1, e2) => if (teval(e1, ro) = BoolT andalso teval(e2, ro) = BoolT) then BoolT else raise NotEqTypes
         | Prim2("::", e1, e2) => let
           val t1 = teval(e1, ro);
           val t2 = teval(e2, ro);
         in
-            (case t1 of
-                SeqT t => if t = t2 then SeqT t else raise NotEqTypes
-                | _ => raise OpNonList
-            )
+           if ListT([t1]) = t2 then t1 else raise NotEqTypes
         end
         | List([]) => ListT([])
-        (* | List(h::t) => teval(h, ro)::teval(List t, ro)::[] *)
-        | Match(e: expr, conds: (expr option * expr) list) => if VERIFICAR then teval((hd conds), ro) else raise DiffBrTypes
+        | List(h::t: expr list) => ListT(teval(h, ro)::(deconstructListT(teval(List(t), ro))))
+        | Match(e: expr, conds: (expr option * expr) list) => 
+        let
+            val mapCondsToRetsTypes = fn x => (map (fn (_, r) => teval(r, ro)) x);
+            val (allSame, tRes) = areAllRetTypesEqual((mapCondsToRetsTypes conds));
+        in
+            if  
+                allSame
+                (* 'e' tem tipo igual a todos os tipos   *)
+                (* Todas as conds tem o mesmo tipo *)
+            then 
+                (* teval((hd conds), ro)  *)
+                tRes
+            else 
+                raise DiffBrTypes
+        end
         | If(e1, e2, e3) => let
             val t2 = teval(e2, ro);
             val t3 = teval(e3, ro);
@@ -49,6 +73,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
             ) 
             else raise IfCondNotBool
         end
+        | Item(i,  e1) => List.nth(deconstructListT(teval(e1, ro)), i)
         | Prim1("-", e1) => if teval(e1, ro) = IntT then IntT else raise NotEqTypes
         | Prim2(ope, e1, e2) =>
             (case ope of
@@ -92,10 +117,16 @@ fun teval(e: expr, ro: plcType env) : plcType =
         | _ => raise UnknownType;
 
 
-val expr0 = List([ConI 11, ConI 9, ConI 29, ConB false]);
-val expr4 = Prim1("ise", List([ConI 11, ConI 9, ConI 29, ConB false]));
+(* val expr0 = List([ConI 11, ConI 9, ConI 29, ConB false]); *)
+(* val expr0 = Item(0, List([ConB false, ConI 29, ConI 0605])); *)
+val expr0 = Match(
+    Var "x", 
+    [(SOME(ConI 0), ConB true), (NONE, ConB false)]
+);
+(* val expr0 = Prim1("tl", List([ConB false, ConI 9])); *)
+(* val expr4 = Prim1("ise", List([ConI 11, ConI 9, ConI 29, ConB false])); *)
 (* val expr1 = If(Prim2("=", ConI 11, ConI 0), ConI 1, ConI 0);
 val expr2 = Letrec("f",BoolT,"x",BoolT,If (Var "x",ConI 11,ConI 22), Call (Var "f",ConB true));
 val expr3 = Let("b", Prim2("=", ConI 1, ConI 2), If(Var "b", ConI 3, ConI 4)); *)
 
-teval(expr4, []);
+teval(expr0, []);
