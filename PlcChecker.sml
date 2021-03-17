@@ -30,6 +30,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
     case e of
         ConI _ => IntT
         | ConB _ => BoolT
+        | Var a => (lookup ro a)
         | Prim1("!", e1) => if teval(e1, ro) = BoolT then BoolT else raise NotEqTypes
         | Prim1("hd", e1) => hd (deconstructListT(teval(e1, ro)))
         | Prim1("tl", e1) => teval(e1, ro)
@@ -118,7 +119,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
 (* val expr0 = List([ConI 11, ConI 9, ConI 29, ConB false]); *)
 (* val expr0 = Item(0, List([ConB false, ConI 29, ConI 0605])); *)
 val expr0 = Match(
-    Var "x", 
+    ConI 0, 
     [(SOME(ConI 0), ConB false), (SOME(ConI 29), ConB true), (NONE, ConB false)]
 );
 (* val expr0 = Prim1("tl", List([ConB false, ConI 9])); *)
