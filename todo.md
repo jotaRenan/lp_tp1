@@ -2,11 +2,11 @@ Segunda entrega:
 [ ] implementação PlcChecker (type checker)
 [x] 6
 [x] 7
-[x] 8
+[ ] 8
 [ ] 9
 [x] 10
 [ ] 11
-[ ] 13 - falta a parte A
+[x] 13 - falta a parte A
 [x] 16
 [x] 17
 [x] 18 - checar

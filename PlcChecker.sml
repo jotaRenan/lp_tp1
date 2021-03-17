@@ -23,12 +23,8 @@ fun deconstructListT(t: plcType) : plcType list =
         ListT x => x
         | _ => raise UnknownType
 
-
-(* 
-fun mapCondsToRetsTypes (ro: plcType env, conds: (expr option * expr) list) = 
-    map (fn (_, r) => teval(r, ro)) conds *)
-
 fun areAllRetTypesEqual (retTypes: plcType list) = foldl (fn (a, (areAllSame, t1)) => (areAllSame andalso t1 = a, t1)) (true, (hd retTypes)) retTypes;
+fun notNone (expa, _) : bool = case expa of NONE => false | SOME x => true;
 
 fun teval(e: expr, ro: plcType env) : plcType =
     case e of
@@ -49,15 +45,17 @@ fun teval(e: expr, ro: plcType env) : plcType =
         | Match(e: expr, conds: (expr option * expr) list) => 
         let
             val mapCondsToRetsTypes = fn x => (map (fn (_, r) => teval(r, ro)) x);
-            val (allSame, tRes) = areAllRetTypesEqual((mapCondsToRetsTypes conds));
+            val mapCondsToCondExpTypes = fn x => (map (fn (SOME c, _) => teval(c, ro)) x);
+            val (allSame, tRes) = areAllRetTypesEqual(mapCondsToRetsTypes conds);
+            val condsExceptNone = (List.filter notNone conds); 
+            val condTypes = mapCondsToCondExpTypes (condsExceptNone);
+            val (allCondSame, tCond) = areAllRetTypesEqual(condTypes);
+            val eType = teval(e, ro);
         in
-            if  
-                allSame
-                (* 'e' tem tipo igual a todos os tipos   *)
-                (* Todas as conds tem o mesmo tipo *)
+            if 
+                allSame andalso allCondSame andalso (eType = tCond)
             then 
-                (* teval((hd conds), ro)  *)
-                tRes
+                eType
             else 
                 raise DiffBrTypes
         end
@@ -121,7 +119,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
 (* val expr0 = Item(0, List([ConB false, ConI 29, ConI 0605])); *)
 val expr0 = Match(
     Var "x", 
-    [(SOME(ConI 0), ConB true), (NONE, ConB false)]
+    [(SOME(ConI 0), ConB false), (SOME(ConI 29), ConB true), (NONE, ConB false)]
 );
 (* val expr0 = Prim1("tl", List([ConB false, ConI 9])); *)
 (* val expr4 = Prim1("ise", List([ConI 11, ConI 9, ConI 29, ConB false])); *)
