@@ -79,8 +79,8 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         in
           eval(e3, (e1, ve2)::ro)
         end
-        (* | (Call(f, e)) => let 
-          val vf = eval(f, ro);
+        | (Call(f, e)) => let 
+          val vf = deconstructVar(f);
           val fv = lookup ro vf
         in
           case fv of
@@ -91,7 +91,7 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
                 eval(e1, ro')
             end
             | _ => raise Impossible
-        end  *)
+        end 
         | _ => raise NotAFunc;
 
 val expr0 = Prim2("+", ConI 2, ConI 3);
@@ -106,7 +106,7 @@ val expr8 = Prim2 ("::", ConI 3, Prim2 ("::", ConI 4, Prim2 ("::", ConI 5, ESeq 
 val expr9 = Prim2 (";", Prim1 ("print", ConI 27), ConB true);
 val expr10 = Anon (IntT, "x", Prim1("-", Var "x"));
 val expr11 = Let("x", ConI 9, Prim2 ("+", Var "x", ConI 1));
-(* val expr12 = Let("f", Anon (Int, "x", Var "x"), Call ("f", ConI 1)); *)
+val expr12 = Let("f", Anon (IntT, "x", Var "x"), Call (Var "f", ConI 5));
 val expr13 = If(ConB true, ConI 1, ConI 2);
 
 eval(expr0, []);
@@ -121,5 +121,5 @@ eval(expr8, []);
 eval(expr9, []);
 eval(expr10, []);
 eval(expr11, []);
-(* eval(expr12, []); *)
+eval(expr12, []);
 eval(expr13, []);
