@@ -43,6 +43,17 @@ fun teval(e: expr, ro: plcType env) : plcType =
         end
         | List([]) => ListT([])
         | List(h::t: expr list) => ListT(teval(h, ro)::(deconstructListT(teval(List(t), ro))))
+        | Call(Var(e2), e1) => let
+            val FunT(argT, retT) = lookup ro e2;
+            val t1 = teval(e1, ro);
+        in
+            if 
+                t1 = argT
+            then
+                retT
+            else
+                raise CallTypeMisM
+        end
         | Match(e: expr, conds: (expr option * expr) list) => 
         let
             val mapCondsToRetsTypes = fn x => (map (fn (_, r) => teval(r, ro)) x);
@@ -100,7 +111,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
                     end
                 | _ => raise UnknownType)
         | ESeq(SeqT(t)) => t
-        | Anon(t, name, e1) => teval(e1, (name, t)::ro)
+        | Anon(t, name, e1) => FunT(t, teval(e1, (name, t)::ro))
         | Prim1("print", e1) => let
           val t1 = teval(e1, ro);
         in
@@ -118,14 +129,18 @@ fun teval(e: expr, ro: plcType env) : plcType =
 
 (* val expr0 = List([ConI 11, ConI 9, ConI 29, ConB false]); *)
 (* val expr0 = Item(0, List([ConB false, ConI 29, ConI 0605])); *)
-val expr0 = Match(
+(* val expr0 = Match(
     ConI 0, 
     [(SOME(ConI 0), ConB false), (SOME(ConI 29), ConB true), (NONE, ConB false)]
-);
+); *)
 (* val expr0 = Prim1("tl", List([ConB false, ConI 9])); *)
 (* val expr4 = Prim1("ise", List([ConI 11, ConI 9, ConI 29, ConB false])); *)
 (* val expr1 = If(Prim2("=", ConI 11, ConI 0), ConI 1, ConI 0);
 val expr2 = Letrec("f",BoolT,"x",BoolT,If (Var "x",ConI 11,ConI 22), Call (Var "f",ConB true));
 val expr3 = Let("b", Prim2("=", ConI 1, ConI 2), If(Var "b", ConI 3, ConI 4)); *)
+val expr0 = Let ("f",Anon (BoolT,"x",ConI 28),Call (Var "f",ConI 32));
+(* val Let(t1, t2, t3) = expr0; *)
+(* val x9 = (1, 2); *)
+(* val (x1,x2) = x9; *)
 
 teval(expr0, []);
