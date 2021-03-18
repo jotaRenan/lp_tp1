@@ -70,6 +70,7 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         | Prim2("-", ConI e1, ConI e2) => IntV(e1 - e2)
         | Prim2("*", ConI e1, ConI e2) => IntV(e1 * e2)
         | Prim2("/", ConI e1, ConI e2) => IntV(e1 div e2)
+        | Prim2("<=", ConI e1, ConI e2) => BoolV(e1 <= e2)
         (* | Prim2 other cases *)
         | Prim2(operation, e1, e2) => let
           val ve1 = deconstructIntV(eval(e1, ro));
@@ -108,7 +109,12 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         in
           eval(e3, (e1, ve2)::ro)
         end
-        (* | LetRec *)
+        | Letrec(nf, _, nv, _, e3, e4) => let
+          val clo = Clos(nf, nv, e3, ro);
+          val ro' = (nf, clo)::ro;
+        in
+          eval(e4, ro')
+        end
         | (Call(f, e)) => let 
           val vf = deconstructVar(f);
           val fv = lookup ro vf
@@ -118,7 +124,7 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
               val ve1 = eval(e, ro);
               val ro' = (x, ve1) :: (f, fv) :: ro
             in
-                eval(e1, ro')
+              eval(e1, ro')
             end
             | _ => raise Impossible
         end 
@@ -141,7 +147,12 @@ val expr13 = If(ConB true, ConI 1, ConI 2);
 val expr14 = Match(Var "x", [(SOME (ConI 0), ConI 1), (SOME (ConI 1), ConI 2),(NONE, Prim1("-", ConI 1))]);
 val expr15 = Prim2("&&", ConB true, ConB false);
 val expr16 = Prim2("&&", ConB true, Prim2("&&", ConB true, ConB true));
-
+val expr17 = Letrec
+      ("f",IntT,"x",IntT,
+       If
+         (Prim2 ("<=",Var "x",ConI 0),ConI 0,
+          Prim2 ("+",Var "x",Call (Var "f",Prim2 ("-",Var "x",ConI 1)))),
+       Call (Var "f",ConI 5));
 
 eval(expr0, []);
 eval(expr1, []);
@@ -161,4 +172,5 @@ eval(expr14, [("x", IntV 0)]);
 eval(expr14, [("x", IntV 1)]);
 eval(expr14, [("x", IntV 2)]);
 eval(expr15, []);
-eval(expr16, []);
+eval(expr16, []); 
+eval(expr17, []);
