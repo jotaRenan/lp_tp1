@@ -190,6 +190,13 @@ val expr17 = Letrec
          (Prim2 ("<=",Var "x",ConI 0),ConI 0,
           Prim2 ("+",Var "x",Call (Var "f",Prim2 ("-",Var "x",ConI 1)))),
        Call (Var "f",ConI 5));
+val expr18 = Prim1("!", ConB true);
+val expr19 = Prim1("hd", expr8);
+val expr20 = Prim1("tl", expr8);
+val expr21 = Prim1("ise", expr8);
+val expr22 = Prim1("ise", expr6);
+
+
 
 eval(expr0, []);
 eval(expr1, []);
@@ -211,3 +218,8 @@ eval(expr14, [("x", IntV 2)]);
 eval(expr15, []);
 eval(expr16, []); 
 eval(expr17, []);
+eval(expr18, []);
+eval(expr19, []);
+eval(expr20, []);
+eval(expr21, []);
+eval(expr22, []);
