@@ -14,6 +14,11 @@ fun deconstructIntV(v: plcVal) : int =
         IntV x => x
         | _ => raise Impossible
 
+fun deconstructBoolV(v: plcVal) : bool =
+    case v of 
+        BoolV x => x
+        | _ => raise Impossible
+
 fun deconstructListV(v: plcVal) : plcVal list =
     case v of 
         ListV x => x
@@ -33,6 +38,13 @@ fun deconstructBoolV(v: plcVal) : bool =
     case v of 
         BoolV x => x
         | _ => raise Impossible
+
+fun getTail(l: plcVal list) : plcVal =
+  case l of
+    (t::[]) => t
+    | (x::ts: plcVal list) => getTail(ts)
+    | _ => raise TLEmptySeq
+
   
 fun eval(e: expr, ro: plcVal env) : plcVal =
     case e of
@@ -71,7 +83,9 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         | Prim2("*", ConI e1, ConI e2) => IntV(e1 * e2)
         | Prim2("/", ConI e1, ConI e2) => IntV(e1 div e2)
         | Prim2("<=", ConI e1, ConI e2) => BoolV(e1 <= e2)
-        (* | Prim2 other cases *)
+        | Prim2("<", ConI e1, ConI e2) => BoolV(e1 < e2)
+        | Prim2("=", e1, e2) => BoolV(e1 = e2)
+        | Prim2("!=", e1, e2) => BoolV(not (e1 = e2))
         | Prim2(operation, e1, e2) => let
           val ve1 = deconstructIntV(eval(e1, ro));
           val ve2 = deconstructIntV(eval(e2, ro));
@@ -80,8 +94,32 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         end
         | Item(e1, List e2) => eval(List.nth(e2, e1-1), ro)
         | If(e1, e2, e3) => if eval(e1, ro) = BoolV true then eval(e2, ro) else eval(e3, ro)
+        | Prim1("!", ConB e1) => BoolV(not e1)
+        | Prim1("!", e1) => BoolV(not(deconstructBoolV(eval(e1, ro)))) 
         | Prim1("-", ConI e1) => IntV(~e1)
         | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval(e1, ro)))), ro)
+        | Prim1("hd", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV (x::ts: plcVal list) => x
+            | SeqV [] => raise HDEmptySeq
+            | _ => raise Impossible
+        end
+        | Prim1("tl", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV l => getTail(l)
+            | _ => raise Impossible
+        end
+        | Prim1("ise", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV [] => BoolV true
+            | _ => BoolV false
+        end
         | Prim1("print", e1) => let
           val ve1 = eval(e1, ro);
           val str = val2string(ve1);
@@ -89,7 +127,6 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
           print (str ^ "\n");
           ListV []
         end
-        (* | Prim1 other cases *)
         | Match(e1, hd::options: (expr option * expr) list) => let
           val ve1 = eval(e1, ro);
           val (m, a) = hd
