@@ -21,6 +21,11 @@ exception OpNonList
 fun deconstructListT(t: plcType) : plcType list =
     case t of 
         ListT x => x
+        | _ => raise OpNonList
+
+fun deconstructSeqT(t: plcType) : plcType =
+    case t of 
+        SeqT x => x
         | _ => raise UnknownType
 
 fun areAllRetTypesEqual (retTypes: plcType list) = foldl (fn (a, (areAllSame, t1)) => (areAllSame andalso t1 = a, t1)) (true, (hd retTypes)) retTypes;
@@ -32,8 +37,20 @@ fun teval(e: expr, ro: plcType env) : plcType =
         | ConB _ => BoolT
         | Var a => (lookup ro a)
         | Prim1("!", e1) => if teval(e1, ro) = BoolT then BoolT else raise NotEqTypes
-        | Prim1("hd", e1) => hd (deconstructListT(teval(e1, ro)))
-        | Prim1("tl", e1) => teval(e1, ro)
+        | Prim1("hd", e1) => 
+            let
+                val t1 = teval(e1, ro);
+            in
+                case t1 of SeqT x1 => x1 
+                    | _ => raise OpNonList
+            end
+        | Prim1("tl", e1) => 
+            let
+                val t1 = teval(e1, ro);
+            in
+                case t1 of SeqT x1 => t1
+                    | _ => raise OpNonList
+            end
         | Prim2(";", e1, e2) => let
           val t1 = teval(e1, ro);
           val t2 = teval(e2, ro);
@@ -76,7 +93,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
             if 
                 allSame andalso allCondSame andalso (eType = tCond)
             then 
-                eType
+                tRes
             else 
                 raise DiffBrTypes
         end
@@ -92,7 +109,20 @@ fun teval(e: expr, ro: plcType env) : plcType =
             ) 
             else raise IfCondNotBool
         end
-        | Item(i,  e1) => List.nth(deconstructListT(teval(e1, ro)), i)
+        | Item(i, List e1) => 
+            if 
+                (0 < i andalso i <= List.length(e1)) 
+            then 
+                teval(List.nth(e1, i - 1), ro) 
+            else raise ListOutOfRange
+        | Item(i,  e1) => 
+            let
+                val t1 = teval(e1, ro);
+            in
+                case t1 of 
+                    ListT li => if (0 < i andalso i <= List.length(li)) then List.nth(li, i - 1) else raise ListOutOfRange
+                    | _ => raise OpNonList
+            end
         | Prim1("-", e1) => if teval(e1, ro) = IntT then IntT else raise NotEqTypes
         | Prim2(ope, e1, e2) =>
             (case ope of
@@ -116,7 +146,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
                         val t1 = teval(e1, ro);
                         val t2 = teval(e2, ro);
                     in
-                        if (t1 = IntT orelse t1 = BoolT) andalso t1 = t2 then BoolT else raise NotEqTypes
+                        if (t1 = IntT orelse t1 = BoolT orelse t1 = (ListT [])) andalso t1 = t2 then BoolT else raise NotEqTypes
                     end
                 | _ => raise UnknownType)
         | ESeq(SeqT(t)) => t
@@ -127,11 +157,12 @@ fun teval(e: expr, ro: plcType env) : plcType =
           ListT([])
         end
         | Prim1("ise", e1) => 
-            (case teval(e1, ro) of
-                ListT _ => BoolT
-                | SeqT _ => BoolT
-                | _ => raise OpNonList
-            )
+            let
+                val t1 = teval(e1, ro);
+            in
+                case t1 of SeqT x1 => BoolT
+                    | _ => raise OpNonList
+            end
         | Let(name, e1, e2) => teval(e2, (name, teval(e1, ro))::ro)
         | Letrec(funName, argT, varName, retT, e1, e2) => 
         let
@@ -144,12 +175,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
 
 
 (* DEU ERRO: *)
-(* val expr0 = Let ("p",List [ConI 1, ConI 3], Let ("f", Anon (ListT [IntT, IntT], "$list", Let ("x",Item (1, Var "$list"), Let ("y",Item (2, Var "$list"),Prim2 ("-",Var "x",Var "y")))), Call (Var "f",Var "p"))); *)
-(* val expr0 = Let("inc",Anon (IntT,"x",Prim2 ("+",Var "x",ConI 1)), Let ("add",Anon(ListT [IntT, IntT],"$list", Let ("x",Item (1,Var "$list"),Let ("y",Item (2,Var "$list"),Prim2 ("+",Var "x",Var "y")))),Let("cadd",Anon (IntT,"x",Anon (IntT,"y",Prim2 ("+",Var "x",Var "y"))), Let ("y",Call (Var "add",List [ConI 3, Call (Var "inc",ConI 4)]),Let("x", Call (Call (Var "cadd",ConI 3),Prim2 ("-",ConI 7,Var "y")), Let ("z",Prim2 ("*",Var "x",ConI 3),Letrec("fac",IntT,"n",IntT, Match (Var "n",[(SOME (ConI 0), ConI 1), (SOME (ConI 1), ConI 1), (NONE,Prim2("*",Var "n", Call (Var "fac",Prim2 ("-",Var "n",ConI 1))))]), Prim2 (";",Prim1 ("print",Var "x"),Prim2(";",Prim1 ("print",Var "y"), Prim2 ("::",Var "x",Prim2("::",Var "y", Prim2 ("::",Var "z",Prim2("::",Call (Var "fac",Var "z"), ESeq (SeqT IntT)))))))))))))); *)
-(* val expr0 = Letrec ("map",FunT (IntT,IntT), "f", FunT (SeqT IntT,SeqT IntT), Anon(SeqT IntT, "l",If(Prim1 ("ise",Var "l"),Var "l",Prim2("::",Call (Var "f",Prim1 ("hd",Var "l")),Call (Call (Var "map",Var "f"),Prim1 ("tl",Var "l"))))),Call(Call (Var "map",Anon (IntT, "x",Prim2 ("*",ConI 2,Var "x"))),Prim2 ("::",ConI 10,Prim2 ("::",ConI 20,Prim2 ("::",ConI 30,ESeq (SeqT IntT)))))); *)
-(* val expr0 = Anon (ListT [IntT, IntT], "$list", Let ("x",Item (1, Var "$list"), Let ("y",Item (2, Var "$list"),Prim2 ("-",Var "x",Var "y")))); *)
-(* val expr0 = Item (2, Item (1, List [List [ConI 5, ConI 6], ConB false])); *)
 
-(* VERIFICAR SE O RETORNO DA REGRA 21 DEVE SER SEQT OU LISTT
-val expr0 = Prim2 ("::",ConI 1,Prim2 ("::",ConI 2,ESeq (SeqT IntT))); *)
+val expr0 = Item (2,ConI 1);
+
 teval(expr0, []);
