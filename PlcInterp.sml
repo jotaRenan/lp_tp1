@@ -14,6 +14,11 @@ fun deconstructIntV(v: plcVal) : int =
         IntV x => x
         | _ => raise Impossible
 
+fun deconstructBoolV(v: plcVal) : bool =
+    case v of 
+        BoolV x => x
+        | _ => raise Impossible
+
 fun deconstructListV(v: plcVal) : plcVal list =
     case v of 
         ListV x => x
@@ -33,6 +38,13 @@ fun deconstructBoolV(v: plcVal) : bool =
     case v of 
         BoolV x => x
         | _ => raise Impossible
+
+fun getTail(l: plcVal list) : plcVal =
+  case l of
+    (t::[]) => t
+    | (x::ts: plcVal list) => getTail(ts)
+    | _ => raise TLEmptySeq
+
   
 fun eval(e: expr, ro: plcVal env) : plcVal =
     case e of
@@ -70,7 +82,10 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         | Prim2("-", ConI e1, ConI e2) => IntV(e1 - e2)
         | Prim2("*", ConI e1, ConI e2) => IntV(e1 * e2)
         | Prim2("/", ConI e1, ConI e2) => IntV(e1 div e2)
-        (* | Prim2 other cases *)
+        | Prim2("<=", ConI e1, ConI e2) => BoolV(e1 <= e2)
+        | Prim2("<", ConI e1, ConI e2) => BoolV(e1 < e2)
+        | Prim2("=", e1, e2) => BoolV(e1 = e2)
+        | Prim2("!=", e1, e2) => BoolV(not (e1 = e2))
         | Prim2(operation, e1, e2) => let
           val ve1 = deconstructIntV(eval(e1, ro));
           val ve2 = deconstructIntV(eval(e2, ro));
@@ -79,8 +94,32 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         end
         | Item(e1, List e2) => eval(List.nth(e2, e1-1), ro)
         | If(e1, e2, e3) => if eval(e1, ro) = BoolV true then eval(e2, ro) else eval(e3, ro)
+        | Prim1("!", ConB e1) => BoolV(not e1)
+        | Prim1("!", e1) => BoolV(not(deconstructBoolV(eval(e1, ro)))) 
         | Prim1("-", ConI e1) => IntV(~e1)
         | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval(e1, ro)))), ro)
+        | Prim1("hd", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV (x::ts: plcVal list) => x
+            | SeqV [] => raise HDEmptySeq
+            | _ => raise Impossible
+        end
+        | Prim1("tl", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV l => getTail(l)
+            | _ => raise Impossible
+        end
+        | Prim1("ise", e1) => let
+          val ve1 = eval(e1, ro)
+        in
+          case ve1 of
+            SeqV [] => BoolV true
+            | _ => BoolV false
+        end
         | Prim1("print", e1) => let
           val ve1 = eval(e1, ro);
           val str = val2string(ve1);
@@ -88,7 +127,6 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
           print (str ^ "\n");
           ListV []
         end
-        (* | Prim1 other cases *)
         | Match(e1, hd::options: (expr option * expr) list) => let
           val ve1 = eval(e1, ro);
           val (m, a) = hd
@@ -108,7 +146,12 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         in
           eval(e3, (e1, ve2)::ro)
         end
-        (* | LetRec *)
+        | Letrec(nf, _, nv, _, e3, e4) => let
+          val clo = Clos(nf, nv, e3, ro);
+          val ro' = (nf, clo)::ro;
+        in
+          eval(e4, ro')
+        end
         | (Call(f, e)) => let 
           val vf = deconstructVar(f);
           val fv = lookup ro vf
@@ -118,7 +161,7 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
               val ve1 = eval(e, ro);
               val ro' = (x, ve1) :: (f, fv) :: ro
             in
-                eval(e1, ro')
+              eval(e1, ro')
             end
             | _ => raise Impossible
         end 
@@ -141,6 +184,18 @@ val expr13 = If(ConB true, ConI 1, ConI 2);
 val expr14 = Match(Var "x", [(SOME (ConI 0), ConI 1), (SOME (ConI 1), ConI 2),(NONE, Prim1("-", ConI 1))]);
 val expr15 = Prim2("&&", ConB true, ConB false);
 val expr16 = Prim2("&&", ConB true, Prim2("&&", ConB true, ConB true));
+val expr17 = Letrec
+      ("f",IntT,"x",IntT,
+       If
+         (Prim2 ("<=",Var "x",ConI 0),ConI 0,
+          Prim2 ("+",Var "x",Call (Var "f",Prim2 ("-",Var "x",ConI 1)))),
+       Call (Var "f",ConI 5));
+val expr18 = Prim1("!", ConB true);
+val expr19 = Prim1("hd", expr8);
+val expr20 = Prim1("tl", expr8);
+val expr21 = Prim1("ise", expr8);
+val expr22 = Prim1("ise", expr6);
+
 
 
 eval(expr0, []);
@@ -161,4 +216,10 @@ eval(expr14, [("x", IntV 0)]);
 eval(expr14, [("x", IntV 1)]);
 eval(expr14, [("x", IntV 2)]);
 eval(expr15, []);
-eval(expr16, []);
+eval(expr16, []); 
+eval(expr17, []);
+eval(expr18, []);
+eval(expr19, []);
+eval(expr20, []);
+eval(expr21, []);
+eval(expr22, []);
