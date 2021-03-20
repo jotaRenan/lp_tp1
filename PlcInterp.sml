@@ -1,7 +1,7 @@
 (* PlcInterp *)
 
-(* use "Environ.sml";
-use "Absyn.sml"; *)
+use "Environ.sml";
+use "Absyn.sml";
 
 exception Impossible
 exception HDEmptySeq
@@ -46,7 +46,7 @@ fun getTail(l: plcVal list) : plcVal =
     | _ => raise TLEmptySeq
 
   
-fun eval(e: expr, ro: plcVal env) : plcVal =
+fun eval(e: expr) (ro: plcVal env) : plcVal =
     case e of
         ConI e1 => IntV e1
         | ConB e1 => BoolV e1 
@@ -54,29 +54,29 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         | ESeq _ => SeqV []
         | List [] => ListV []
         | List(x::xs: expr list) => let
-          val e1 = eval(x, ro);
-          val e2 = deconstructListV(eval(List xs, ro));
+          val e1 = eval x ro;
+          val e2 = deconstructListV(eval(List xs) ro);
         in
           ListV (e1::e2)
         end
         | Prim2("&&", ConB e1, ConB e2) => BoolV(e1 andalso e2)
         | Prim2("&&", e1, e2) => let
-          val e1b = deconstructBoolV(eval(e1, ro));
-          val e2b = deconstructBoolV(eval(e2, ro))
+          val e1b = deconstructBoolV(eval e1 ro);
+          val e2b = deconstructBoolV(eval e2 ro)
         in
-          eval(Prim2("&&", ConB(e1b), ConB(e2b)), ro)
+          eval (Prim2("&&", ConB(e1b), ConB(e2b))) ro
         end 
-        | Prim2("::", e1, ESeq _) => SeqV(eval(e1, ro)::[])
+        | Prim2("::", e1, ESeq _) => SeqV((eval e1 ro)::[])
         | Prim2("::", e1, e2) => let
-          val ve2 = deconstructSeqV(eval(e2, ro));
-          val ve1 = eval(e1, ro);
+          val ve2 = deconstructSeqV(eval e2 ro);
+          val ve1 = eval e1 ro;
         in
           SeqV(ve1::ve2)
         end
         | Prim2(";", e1, e2) => let
-          val e1 = eval(e1, ro)
+          val e1 = eval e1 ro
         in
-          eval(e2, ro)
+          eval e2 ro
         end
         | Prim2("+", ConI e1, ConI e2) => IntV(e1 + e2)
         | Prim2("-", ConI e1, ConI e2) => IntV(e1 - e2)
@@ -87,19 +87,19 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         | Prim2("=", e1, e2) => BoolV(e1 = e2)
         | Prim2("!=", e1, e2) => BoolV(not (e1 = e2))
         | Prim2(operation, e1, e2) => let
-          val ve1 = deconstructIntV(eval(e1, ro));
-          val ve2 = deconstructIntV(eval(e2, ro));
+          val ve1 = deconstructIntV(eval e1 ro);
+          val ve2 = deconstructIntV(eval e2 ro);
         in
-          eval(Prim2(operation, ConI ve1, ConI ve2), ro)
+          eval (Prim2(operation, ConI ve1, ConI ve2)) ro
         end
-        | Item(e1, List e2) => eval(List.nth(e2, e1-1), ro)
-        | If(e1, e2, e3) => if eval(e1, ro) = BoolV true then eval(e2, ro) else eval(e3, ro)
+        | Item(e1, List e2) => eval (List.nth(e2, e1-1)) ro
+        | If(e1, e2, e3) => if eval e1 ro = BoolV true then eval e2 ro else eval e3 ro
         | Prim1("!", ConB e1) => BoolV(not e1)
-        | Prim1("!", e1) => BoolV(not(deconstructBoolV(eval(e1, ro)))) 
+        | Prim1("!", e1) => BoolV(not(deconstructBoolV(eval e1 ro))) 
         | Prim1("-", ConI e1) => IntV(~e1)
-        | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval(e1, ro)))), ro)
+        | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval e1 ro)))) ro
         | Prim1("hd", e1) => let
-          val ve1 = eval(e1, ro)
+          val ve1 = eval e1 ro
         in
           case ve1 of
             SeqV (x::ts: plcVal list) => x
@@ -107,50 +107,50 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
             | _ => raise Impossible
         end
         | Prim1("tl", e1) => let
-          val ve1 = eval(e1, ro)
+          val ve1 = eval e1 ro
         in
           case ve1 of
             SeqV l => getTail(l)
             | _ => raise Impossible
         end
         | Prim1("ise", e1) => let
-          val ve1 = eval(e1, ro)
+          val ve1 = eval e1 ro
         in
           case ve1 of
             SeqV [] => BoolV true
             | _ => BoolV false
         end
         | Prim1("print", e1) => let
-          val ve1 = eval(e1, ro);
+          val ve1 = eval e1 ro;
           val str = val2string(ve1);
         in
           print (str ^ "\n");
           ListV []
         end
         | Match(e1, hd::options: (expr option * expr) list) => let
-          val ve1 = eval(e1, ro);
+          val ve1 = eval e1 ro;
           val (m, a) = hd
         in
           case m of
-            SOME e2 => if ve1 = eval(e2, ro) then 
-                        eval (a, ro) 
+            SOME e2 => if ve1 = eval e2 ro then 
+                        eval a ro 
                       else if options = [] then 
                         raise ValueNotFoundInMatch 
                       else 
-                        eval(Match(e1, options), ro)
-            | NONE => eval(a, ro)
+                        eval(Match(e1, options)) ro
+            | NONE => eval a ro
         end
         | Anon(e1, e2, e3) => Clos("", e2, e3, ro)
         | Let(e1, e2, e3) => let
-          val ve2 = eval(e2, ro)
+          val ve2 = eval e2 ro
         in
-          eval(e3, (e1, ve2)::ro)
+          eval e3 ((e1, ve2)::ro)
         end
         | Letrec(nf, _, nv, _, e3, e4) => let
           val clo = Clos(nf, nv, e3, ro);
           val ro' = (nf, clo)::ro;
         in
-          eval(e4, ro')
+          eval e4 ro'
         end
         | (Call(f, e)) => let 
           val vf = deconstructVar(f);
@@ -158,10 +158,10 @@ fun eval(e: expr, ro: plcVal env) : plcVal =
         in
           case fv of
             (Clos(f, x, e1, fSt)) => let
-              val ve1 = eval(e, ro);
+              val ve1 = eval e ro;
               val ro' = (x, ve1) :: (f, fv) :: ro
             in
-              eval(e1, ro')
+              eval e1 ro'
             end
             | _ => raise Impossible
         end 
@@ -198,28 +198,28 @@ val expr22 = Prim1("ise", expr6);
 
 
 
-eval(expr0, []);
-eval(expr1, []);
-eval(expr2, []);
-eval(expr3, []);
-eval(expr4, []);
-eval(expr5, []);
-eval(expr6, []);
-eval(expr7, []);
-eval(expr8, []);
-eval(expr9, []);
-eval(expr10, []);
-eval(expr11, []);
-eval(expr12, []);
-eval(expr13, []);
-eval(expr14, [("x", IntV 0)]);
-eval(expr14, [("x", IntV 1)]);
-eval(expr14, [("x", IntV 2)]);
-eval(expr15, []);
-eval(expr16, []); 
-eval(expr17, []);
-eval(expr18, []);
-eval(expr19, []);
-eval(expr20, []);
-eval(expr21, []);
-eval(expr22, []);
+eval expr1 [];
+eval expr2 [];
+eval expr0 [];
+eval expr3 [];
+eval expr4 [];
+eval expr5 [];
+eval expr6 [];
+eval expr7 [];
+eval expr8 [];
+eval expr9 [];
+eval expr10 [];
+eval expr11 [];
+eval expr12 [];
+eval expr13 [];
+eval expr14 [("x", IntV 0)];
+eval expr14 [("x", IntV 1)];
+eval expr14 [("x", IntV 2)];
+eval expr15 [];
+eval expr16 [];
+eval expr17 [];
+eval expr18 [];
+eval expr19 [];
+eval expr20 [];
+eval expr21 [];
+eval expr22 [];
