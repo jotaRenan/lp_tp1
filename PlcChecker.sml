@@ -1,7 +1,7 @@
 (* PlcChecker *)
 
-use "Environ.sml";
-use "Absyn.sml";
+(* use "Environ.sml";
+use "Absyn.sml"; *)
 
 exception EmptySeq
 exception UnknownType
@@ -176,6 +176,6 @@ fun teval(e: expr, ro: plcType env) : plcType =
 
 (* DEU ERRO: *)
 
-val expr0 = Item (2,ConI 1);
+(* val expr0 = Item (2,ConI 1);
 
-teval(expr0, []);
+teval(expr0, []); *)
