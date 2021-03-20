@@ -62,6 +62,7 @@ val expr20 = Prim1("tl", expr8);
 val expr21 = Prim1("ise", expr8);
 val expr22 = Prim1("ise", expr6);
 
+run expr0;
 run expr1;
 run expr2;
 run expr0;

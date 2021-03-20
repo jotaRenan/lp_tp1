@@ -51,12 +51,11 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
         in
           ListV (e1::e2)
         end
-        | Prim2("&&", ConB e1, ConB e2) => BoolV(e1 andalso e2)
         | Prim2("&&", e1, e2) => let
           val e1b = deconstructBoolV(eval e1 ro);
           val e2b = deconstructBoolV(eval e2 ro)
         in
-          eval (Prim2("&&", ConB(e1b), ConB(e2b))) ro
+          BoolV(e1b andalso e2b)
         end 
         | Prim2("::", e1, ESeq _) => SeqV((eval e1 ro)::[])
         | Prim2("::", e1, e2) => let
@@ -89,7 +88,7 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
         | Prim1("!", ConB e1) => BoolV(not e1)
         | Prim1("!", e1) => BoolV(not (deconstructBoolV(eval e1 ro))) 
         | Prim1("-", ConI e1) => IntV(~e1)
-        | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval e1 ro)))) ro
+        | Prim1("-", e1) => IntV(~(deconstructIntV(eval e1 ro)))
         | Prim1("hd", e1) => let
           val ve1 = eval e1 ro
         in
