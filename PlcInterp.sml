@@ -19,14 +19,10 @@ fun deconstructBoolV(v: plcVal) : bool =
         BoolV x => x
         | _ => raise Impossible
 
-fun deconstructListV(v: plcVal) : plcVal list =
+fun deconstructListTypes(v: plcVal) : plcVal list =
     case v of 
         ListV x => x
-        | _ => raise Impossible
-
-fun deconstructSeqV(v: plcVal) : plcVal list =
-    case v of 
-        SeqV x => x
+        | SeqV x => x
         | _ => raise Impossible
 
 fun deconstructVar(v: expr) : string =
@@ -34,10 +30,6 @@ fun deconstructVar(v: expr) : string =
         Var x => x
         | _ => raise Impossible
 
-fun deconstructBoolV(v: plcVal) : bool =
-    case v of 
-        BoolV x => x
-        | _ => raise Impossible
 
 fun getTail(l: plcVal list) : plcVal =
   case l of
@@ -50,12 +42,12 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
     case e of
         ConI e1 => IntV e1
         | ConB e1 => BoolV e1 
-        | Var x => lookup ro x
         | ESeq _ => SeqV []
+        | Var x => lookup ro x
         | List [] => ListV []
         | List(x::xs: expr list) => let
           val e1 = eval x ro;
-          val e2 = deconstructListV(eval(List xs) ro);
+          val e2 = deconstructListTypes(eval(List xs) ro);
         in
           ListV (e1::e2)
         end
@@ -68,7 +60,7 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
         end 
         | Prim2("::", e1, ESeq _) => SeqV((eval e1 ro)::[])
         | Prim2("::", e1, e2) => let
-          val ve2 = deconstructSeqV(eval e2 ro);
+          val ve2 = deconstructListTypes(eval e2 ro);
           val ve1 = eval e1 ro;
         in
           SeqV(ve1::ve2)
@@ -95,7 +87,7 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
         | Item(e1, List e2) => eval (List.nth(e2, e1-1)) ro
         | If(e1, e2, e3) => if eval e1 ro = BoolV true then eval e2 ro else eval e3 ro
         | Prim1("!", ConB e1) => BoolV(not e1)
-        | Prim1("!", e1) => BoolV(not(deconstructBoolV(eval e1 ro))) 
+        | Prim1("!", e1) => BoolV(not (deconstructBoolV(eval e1 ro))) 
         | Prim1("-", ConI e1) => IntV(~e1)
         | Prim1("-", e1) => eval(Prim1("-", ConI(deconstructIntV(eval e1 ro)))) ro
         | Prim1("hd", e1) => let
@@ -152,12 +144,12 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
         in
           eval e4 ro'
         end
-        | (Call(f, e)) => let 
+        | Call(f, e) => let 
           val vf = deconstructVar(f);
           val fv = lookup ro vf
         in
           case fv of
-            (Clos(f, x, e1, fSt)) => let
+            Clos(f, x, e1, fSt) => let
               val ve1 = eval e ro;
               val ro' = (x, ve1) :: (f, fv) :: ro
             in
@@ -166,4 +158,3 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
             | _ => raise Impossible
         end 
         | _ => raise NotAFunc;
-        
