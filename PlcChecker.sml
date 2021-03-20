@@ -23,11 +23,6 @@ fun deconstructListT(t: plcType) : plcType list =
         ListT x => x
         | _ => raise OpNonList
 
-fun deconstructSeqT(t: plcType) : plcType =
-    case t of 
-        SeqT x => x
-        | _ => raise UnknownType
-
 fun areAllRetTypesEqual (retTypes: plcType list) = foldl (fn (a, (areAllSame, t1)) => (areAllSame andalso t1 = a, t1)) (true, (hd retTypes)) retTypes;
 fun notNone (expa, _) : bool = case expa of NONE => false | SOME x => true;
 
@@ -36,7 +31,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
         ConI _ => IntT
         | ConB _ => BoolT
         | Var a => (lookup ro a)
-        | Prim1("!", e1) => if teval(e1, ro) = BoolT then BoolT else raise NotEqTypes
+        | Prim1("!", e1) => if teval(e1, ro) = BoolT then BoolT else raise UnknownType
         | Prim1("hd", e1) => 
             let
                 val t1 = teval(e1, ro);
@@ -73,29 +68,36 @@ fun teval(e: expr, ro: plcType env) : plcType =
         | List(h::t: expr list) => ListT(teval(h, ro)::(deconstructListT(teval(List(t), ro))))
         | Call(Var(e2), e1) => 
             let
-                val FunT(argT, retT) = lookup ro e2;
+                val mayBeFunType = lookup ro e2;
                 val t1 = teval(e1, ro);
             in 
-                if t1 = argT then retT else raise CallTypeMisM 
+                case mayBeFunType of FunT(argT, retT) => if t1 = argT then retT else raise CallTypeMisM 
+                    | _ => raise NotFunc
             end
-        | Call(Call a, e1) =>  let val FunT(_, r) = teval(Call a, ro) in r end 
+        | Call(Call a, e1) => 
+            let 
+                val x = teval(Call a, ro) 
+            in 
+                case x of FunT(_, r) => r 
+                    | _ => raise NotFunc
+            end 
         | Call(_, _) => raise NotFunc
-        | Match(e: expr, conds: (expr option * expr) list) => 
+        | Match(_, []) => raise NoMatchResults
+        | Match(e, conds: (expr option * expr) list) => 
         let
             val mapCondsToRetsTypes = fn x => (map (fn (_, r) => teval(r, ro)) x);
-            val mapCondsToCondExpTypes = fn x => (map (fn (SOME c, _) => teval(c, ro)) x);
+            val mapCondsToCondExpTypes = fn x => (map (fn (SOME c, _) => teval(c, ro) | (_,_) => raise UnknownType) x);
             val (allSame, tRes) = areAllRetTypesEqual(mapCondsToRetsTypes conds);
             val condsExceptNone = (List.filter notNone conds); 
             val condTypes = mapCondsToCondExpTypes (condsExceptNone);
             val (allCondSame, tCond) = areAllRetTypesEqual(condTypes);
             val eType = teval(e, ro);
         in
-            if 
-                allSame andalso allCondSame andalso (eType = tCond)
-            then 
-                tRes
-            else 
-                raise DiffBrTypes
+            if allSame = false 
+            then raise MatchResTypeDiff 
+            else if (allCondSame = false orelse eType <> tCond)
+            then raise MatchCondTypesDiff
+            else tRes
         end
         | If(e1, e2, e3) => let
             val t2 = teval(e2, ro);
@@ -109,6 +111,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
             ) 
             else raise IfCondNotBool
         end
+        | Item(_, List []) => raise EmptySeq
         | Item(i, List e1) => 
             if 
                 (0 < i andalso i <= List.length(e1)) 
@@ -123,7 +126,7 @@ fun teval(e: expr, ro: plcType env) : plcType =
                     ListT li => if (0 < i andalso i <= List.length(li)) then List.nth(li, i - 1) else raise ListOutOfRange
                     | _ => raise OpNonList
             end
-        | Prim1("-", e1) => if teval(e1, ro) = IntT then IntT else raise NotEqTypes
+        | Prim1("-", e1) => if teval(e1, ro) = IntT then IntT else raise UnknownType
         | Prim2(ope, e1, e2) =>
             (case ope of
                 ("+" | "-" | "*" | "/") => let
@@ -160,8 +163,8 @@ fun teval(e: expr, ro: plcType env) : plcType =
             let
                 val t1 = teval(e1, ro);
             in
-                case t1 of SeqT x1 => BoolT
-                    | _ => raise OpNonList
+                case t1 of SeqT _ => BoolT
+                    | _ => raise UnknownType
             end
         | Let(name, e1, e2) => teval(e2, (name, teval(e1, ro))::ro)
         | Letrec(funName, argT, varName, retT, e1, e2) => 
@@ -169,13 +172,10 @@ fun teval(e: expr, ro: plcType env) : plcType =
             val t1 = teval(e1, (funName, FunT(argT, retT))::(varName, argT)::ro);
             val t2 = teval(e2, (funName, FunT(argT, retT))::ro);
         in
-            t2
+            if retT = t1 then t2 else raise WrongRetType
         end
         | _ => raise UnknownType;
 
+val expr0 = Let ("f",Anon (IntT,"x",Var "x"),Call (Var "f",ConI 10));
 
-(* DEU ERRO: *)
-
-(* val expr0 = Item (2,ConI 1);
-
-teval(expr0, []); *)
+teval(expr0, [("x", BoolT)]);

@@ -20,15 +20,15 @@ Checagem
  - 6 [x]
  - 7 [x]
  - 8 [x]
- - 9 [x] (acho q ta funfando mas ta falhando por causa da regra de lista)
- - 10 [x] (acho q ta funfando mas ta falhando por causa da regra d lista)
- - 11 [x] (acho q ta funfando mas ta falhando por causa da regra d lista)
+ - 9 [x] 
+ - 10 [x] 
+ - 11 [x] 
  - 12 [x]
- - 13 [x] (corrigir exceptions)
- - 14 [x] (corrigir exception)
- - 15 [x] (corrigir exception)
+ - 13 [x]
+ - 14 [x]
+ - 15 [x] 
  - 16 [x]
- - 18 [ ]
+ - 18 [x]
  - 19 [x]
  - 20 [x]
  - 21 [x]
