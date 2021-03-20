@@ -154,6 +154,6 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
             in
               eval e1 ro'
             end
-            | _ => raise Impossible
+            | _ => raise NotAFunc
         end 
-        | _ => raise NotAFunc;
+        | _ => raise Impossible;
