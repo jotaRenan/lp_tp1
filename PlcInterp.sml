@@ -75,7 +75,6 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
           val ve1 = deconstructIntV(eval e1 ro);
           val ve2 = deconstructIntV(eval e2 ro);
         in
-          print ("OP 1 " ^ Int.toString(ve1) ^ " 2 " ^ Int.toString(ve2));
           eval (Prim2(operation, ConI ve1, ConI ve2)) ro
         end
         | Item(e1, List e2) => eval (List.nth(e2, e1-1)) ro
@@ -96,26 +95,21 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
           case ve1 of
             SeqV (x::ts: plcVal list) => x
             | SeqV [] => raise HDEmptySeq
-            | ListV (x::ts: plcVal list) => x
-            | ListV [] => raise HDEmptySeq
             | _ => raise Impossible
         end
         | Prim1("tl", e1) => let
           val ve1 = eval e1 ro
         in
           case ve1 of
-            SeqV (x::ts: plcVal list) => ListV(ts)
+            SeqV (x::ts: plcVal list) => SeqV(ts)
             | SeqV [] => raise TLEmptySeq
-            | ListV (x::ts: plcVal list) => ListV(ts)
-            | ListV [] => raise TLEmptySeq
-            | _ =>( (print "tail of non seq"); raise Impossible)
+            | _ => raise Impossible
         end
         | Prim1("ise", e1) => let
           val ve1 = eval e1 ro
         in
           case ve1 of
             SeqV [] => BoolV true
-            | ListV [] => BoolV true
             | _ => BoolV false
         end
         | Prim1("print", e1) => let
@@ -158,7 +152,6 @@ fun eval(e: expr) (ro: plcVal env) : plcVal =
               val ve1 = eval e ro;
               val ro' = (x, ve1) :: (vf, fv) :: fSt
             in
-              print(list2string(env2string, ro') ^ "\n");
               eval e1 ro'
             end
             | _ => raise NotAFunc

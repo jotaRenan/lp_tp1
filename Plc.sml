@@ -117,51 +117,6 @@ val expr37 =Let("E",
                 )
             );
 
-val expr38 = Letrec("rev", ListT [SeqT IntT, SeqT IntT],"$list",SeqT IntT, 
-    Let ("s1",Item (1,Var "$list"),
-        Let("s2",Item (2,Var "$list"), 
-            Match (Var "s1",[(SOME (Var "E"), Var "s2"), 
-                    (NONE,Let("h",Prim1 ("h",Var "s1"), 
-            Let ("t",Prim1 ("tl",Var "s1"),
-                Call(Var "rev", List [Var "t", Prim2 ("::",Var "h",Var "s2")]))))]))), 
-    Call (Var "rev",List [Var "s", Var "E"]));
-
-val expr39 = Let ("s1",List [],
-        Let("s2",List [], 
-            Match (Var "s1",
-            [(SOME (Var "E"), Var "s2"), 
-                    (NONE, Let("h",Prim1 ("h",Var "s1"), 
-                        Let ("t",
-                            Prim1 ("tl",Var "s1"),
-                            Call(
-                                Var "rev", 
-                                List [Var "t", Prim2 ("::",Var "h",Var "s2")]
-                            )
-                        )))])));
-                        
-val expr40 = Match (Var "s1",
-            [(SOME (Var "E"), Var "s2"), 
-            (NONE, Let("h",Prim1 ("h",Var "s1"), 
-                        Let ("t",
-                            Prim1 ("tl",Var "s1"),
-                            Call(
-                                Var "rev", 
-                                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
-                            )
-                        )))]);
-val expr41 = Let("h",Prim1 ("h",Var "s1"), 
-                        Let ("t",
-                            Prim1 ("tl",Var "s1"),
-                            Call(
-                                Var "rev", 
-                                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
-                            )
-                        ));
-
-val expr42 = Call(
-                Var "rev", 
-                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
-            );
 
 (* "var p = (1,3); fun f(Int x, Int y) = x - y; f(p)" *)
 val expr43 = Let ("p",List [ConI 1, ConI 3], Let ("f", 
@@ -235,4 +190,4 @@ run expr39;
 run expr41;*)
 (* run expr37; *)
 
-run expr37;
+run expr44;
