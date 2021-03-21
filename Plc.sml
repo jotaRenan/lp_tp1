@@ -97,7 +97,6 @@ val expr31 = Prim2
        ("::",List [Anon (IntT,"x",Var "x"),ConI 2],
         Prim2 ("::",List [ConI 3,ConI 4],ESeq ((ListT [IntT, IntT])))));
 val expr32 = Prim2("+", ConB false, ConI 29);
-(* fun f (Int x) = {fun g(Int y) = x+y; g}; f(3)(4)" *)
 val expr33 = Let ("f", Anon (IntT, "x", 
                 Let ("g",Anon (IntT,"y",
                     Prim2 ("+",Var "x",Var "y")),Var "g")),
@@ -105,7 +104,6 @@ val expr33 = Let ("f", Anon (IntT, "x",
 val expr34 = Item(0, List([ConI 6, ConB false]));
 val expr35 = Item(3, List([ConI 6, ConB false]));
 val expr36 = Let ("f",Anon (IntT, "x",Var "x"),Var "f");
-"var E = ([Int] []); fun reverse ([Int] s) = { fun rec rev ([Int] s1, [Int] s2): [Int] = match s1 with | E -> s2 | _ -> { var h = hd(s1); var t = tl(s1); rev(t, h::s2) } end; rev(s, E) }; reverse (1::2::3::E)";
 val expr37 =Let("E",
             ESeq (SeqT IntT), 
             Let ("reverse",
@@ -116,16 +114,13 @@ val expr37 =Let("E",
                 (Var "reverse", Prim2 ("::",ConI 1,Prim2 ("::",ConI 2,Prim2 ("::",ConI 3,Var "E"))))
                 )
             );
-
-
-(* "var p = (1,3); fun f(Int x, Int y) = x - y; f(p)" *)
-val expr43 = Let ("p",List [ConI 1, ConI 3], Let ("f", 
+val expr38 = Let ("p",List [ConI 1, ConI 3], Let ("f", 
 Anon (ListT [IntT, IntT], "$list", 
     Let ("x",Item (1, Var "$list"), Let ("y",Item (2, Var "$list"),
     Prim2 ("-",Var "x",Var "y")))),
     Call (Var "f",Var "p")));
 
-val expr44 = (Let ("E", ESeq (SeqT IntT), 
+val expr39 = (Let ("E", ESeq (SeqT IntT), 
                 Let ("reverse", 
                 Anon (SeqT IntT, "l",
                     Letrec (
@@ -145,7 +140,7 @@ val expr44 = (Let ("E", ESeq (SeqT IntT),
                         Call (Var "rev", List [Var "l", Var "E"]))),
                     Call (Var "reverse", Prim2 ("::",ConI 1,Prim2 ("::",ConI 2,Prim2 ("::",ConI 3,Var "E")))))));
 
-(* run expr0;
+run expr0;
 run expr1;
 run expr2;
 run expr0;
@@ -180,14 +175,11 @@ run expr28;
 run expr29;
 run expr30;
 run expr31;
-run expr32; *)
-(* run expr33; *)
-(* run expr34;
-run expr35; *)
-(* run expr36; *)
-(* run expr38;
-run expr39; 
-run expr41;*)
-(* run expr37; *)
-
-run expr44;
+run expr32;
+run expr33;
+run expr34;
+run expr35;
+run expr36;
+run expr37;
+run expr38;
+run expr39;
