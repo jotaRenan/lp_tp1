@@ -59,3 +59,6 @@ fun val2string v =
     | ListV vs => "(" ^ list2string (val2string, vs) ^ ")"
     | SeqV vs => "[" ^ list2string (val2string, vs) ^ "]"
     | Clos _ => "<fun>";
+
+(* Convert a plcVal into a string *)
+fun env2string (a, v) = a ^ " : " ^ (val2string v) ^ " , "

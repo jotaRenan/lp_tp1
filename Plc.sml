@@ -29,6 +29,25 @@ fun run(e: expr) : string = let
 in
     val2string(resultVar) ^ " : " ^ type2string(resultType)
 end
+handle Impossible => "It is impossible to execute this function."
+ | HDEmptySeq => "Can't apply head function to an empty seq."
+ | TLEmptySeq => "Can't apply tail function to an empty seq."
+ | ValueNotFoundInMatch => "Value not found in match and no default specified."
+ | NotAFunc => "Can't execute an operation that isn't a function."
+ | SymbolNotFound => "This operation depends on an undefined free var."
+ | EmptySeq => "Sequence contains no elements."
+ | UnknownType => "Unknown type specified."
+ | NotEqTypes => "Types used in comparison differ."
+ | WrongRetType => "Specified function return type is incompatible with its body."
+ | DiffBrTypes => "Branches return types differ."
+ | IfCondNotBool => "Condition used in If Expression is not boolean."
+ | NoMatchResults => "No results specified in Match expression."
+ | MatchResTypeDiff => "Return types differ in match conditions."
+ | MatchCondTypesDiff => "Match condition types differ."
+ | CallTypeMisM => "Can't execute this type."
+ | NotFunc => "Parameter is not a function."
+ | ListOutOfRange => "List index out of bounds"
+ | OpNonList => "Tried to access an element in an expression that is not a list."
 
 val e = fromString "fun rec f1(Int x):Int = x + 1; f1(12)";
 run e;
@@ -61,8 +80,117 @@ val expr19 = Prim1("hd", expr8);
 val expr20 = Prim1("tl", expr8);
 val expr21 = Prim1("ise", expr8);
 val expr22 = Prim1("ise", expr6);
+val expr23 = Match (Var "x",[]);
+val expr24 = Match (Var "x",[(SOME (ConB false), ConI 1), (NONE, Prim1 ("-",ConI 1))]);
+val expr25 = Match (ConI 5,[(SOME (ConI 0), ConI 1), (SOME (ConI 1), ConI 2)]);
+val expr26 = Prim2("=", List [ConI 1,ConB false,List []],List [ConI 1,ConB false,List []]);
+val expr27 = Prim2("=", List [ConI 1,ConB true,List []],List [ConI 1,ConB false,List []]);
+val expr28 = Prim2("=", Prim2 ("::", ConI 2, Prim2 ("::", ConI 4, Prim2 ("::", ConI 5, ESeq (SeqT IntT)))), Prim2 ("::", ConI 3, Prim2 ("::", ConI 4, Prim2 ("::", ConI 5, ESeq (SeqT IntT)))));
+val expr29 = Prim2("=", Prim2 ("::", ConI 3, Prim2 ("::", ConI 4, Prim2 ("::", ConI 5, ESeq (SeqT IntT)))), Prim2 ("::", ConI 3, Prim2 ("::", ConI 4, Prim2 ("::", ConI 5, ESeq (SeqT IntT)))));
+val expr30 = Prim2 ("=",List [ConI 1,Anon (IntT,"x",Var "x"),List []], List [ConI 1,Anon (IntT,"x",Var "x"),List []]);
+val expr31 = Prim2
+    ("=",
+     Prim2
+       ("::",List [Anon (IntT,"x",Var "x"),ConI 2],
+        Prim2 ("::",List [ConI 3,ConI 4],ESeq (SeqT (ListT [IntT, IntT])))),
+     Prim2
+       ("::",List [Anon (IntT,"x",Var "x"),ConI 2],
+        Prim2 ("::",List [ConI 3,ConI 4],ESeq ((ListT [IntT, IntT])))));
+val expr32 = Prim2("+", ConB false, ConI 29);
+(* fun f (Int x) = {fun g(Int y) = x+y; g}; f(3)(4)" *)
+val expr33 = Let ("f", Anon (IntT, "x", 
+                Let ("g",Anon (IntT,"y",
+                    Prim2 ("+",Var "x",Var "y")),Var "g")),
+            Call (Call (Var "f",ConI 3),ConI 4));
+val expr34 = Item(0, List([ConI 6, ConB false]));
+val expr35 = Item(3, List([ConI 6, ConB false]));
+val expr36 = Let ("f",Anon (IntT, "x",Var "x"),Var "f");
+"var E = ([Int] []); fun reverse ([Int] s) = { fun rec rev ([Int] s1, [Int] s2): [Int] = match s1 with | E -> s2 | _ -> { var h = hd(s1); var t = tl(s1); rev(t, h::s2) } end; rev(s, E) }; reverse (1::2::3::E)";
+val expr37 =Let("E",
+            ESeq (SeqT IntT), 
+            Let ("reverse",
+                Anon(SeqT IntT,"s", 
+                    Letrec("rev", ListT [SeqT IntT, SeqT IntT],"$list",SeqT IntT, Let ("s1",Item (1,Var "$list"),Let("s2",Item (2,Var "$list"), Match (Var "s1",[(SOME (Var "E"), Var "s2"), (NONE,Let("h",Prim1 ("hd",Var "s1"), Let ("t",Prim1 ("tl",Var "s1"),Call(Var "rev", List [Var "t", Prim2 ("::",Var "h",Var "s2")]))))]))), 
+                    Call (Var "rev",List [Var "s", Var "E"]))),
+                Call 
+                (Var "reverse", Prim2 ("::",ConI 1,Prim2 ("::",ConI 2,Prim2 ("::",ConI 3,Var "E"))))
+                )
+            );
 
-run expr0;
+val expr38 = Letrec("rev", ListT [SeqT IntT, SeqT IntT],"$list",SeqT IntT, 
+    Let ("s1",Item (1,Var "$list"),
+        Let("s2",Item (2,Var "$list"), 
+            Match (Var "s1",[(SOME (Var "E"), Var "s2"), 
+                    (NONE,Let("h",Prim1 ("h",Var "s1"), 
+            Let ("t",Prim1 ("tl",Var "s1"),
+                Call(Var "rev", List [Var "t", Prim2 ("::",Var "h",Var "s2")]))))]))), 
+    Call (Var "rev",List [Var "s", Var "E"]));
+
+val expr39 = Let ("s1",List [],
+        Let("s2",List [], 
+            Match (Var "s1",
+            [(SOME (Var "E"), Var "s2"), 
+                    (NONE, Let("h",Prim1 ("h",Var "s1"), 
+                        Let ("t",
+                            Prim1 ("tl",Var "s1"),
+                            Call(
+                                Var "rev", 
+                                List [Var "t", Prim2 ("::",Var "h",Var "s2")]
+                            )
+                        )))])));
+                        
+val expr40 = Match (Var "s1",
+            [(SOME (Var "E"), Var "s2"), 
+            (NONE, Let("h",Prim1 ("h",Var "s1"), 
+                        Let ("t",
+                            Prim1 ("tl",Var "s1"),
+                            Call(
+                                Var "rev", 
+                                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
+                            )
+                        )))]);
+val expr41 = Let("h",Prim1 ("h",Var "s1"), 
+                        Let ("t",
+                            Prim1 ("tl",Var "s1"),
+                            Call(
+                                Var "rev", 
+                                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
+                            )
+                        ));
+
+val expr42 = Call(
+                Var "rev", 
+                List [Var "t", Prim2 ("::",Var "h",ConI 5)]
+            );
+
+(* "var p = (1,3); fun f(Int x, Int y) = x - y; f(p)" *)
+val expr43 = Let ("p",List [ConI 1, ConI 3], Let ("f", 
+Anon (ListT [IntT, IntT], "$list", 
+    Let ("x",Item (1, Var "$list"), Let ("y",Item (2, Var "$list"),
+    Prim2 ("-",Var "x",Var "y")))),
+    Call (Var "f",Var "p")));
+
+val expr44 = (Let ("E", ESeq (SeqT IntT), 
+                Let ("reverse", 
+                Anon (SeqT IntT, "l",
+                    Letrec (
+                        "rev",
+                        ListT [SeqT IntT, SeqT IntT],
+                        "$list", 
+                        SeqT IntT, 
+                        Let ("l1", 
+                            Item (1, Var "$list"),
+                            Let ("l2",
+                                Item (2, Var "$list"), 
+                                If (Prim1 ("ise",Var "l1"), 
+                                    Var "l2",Call (Var "rev",
+                                                    List [Prim1 ("tl",Var "l1"),
+                                                        Prim2 ("::", Prim1 ("hd",Var "l1"),
+                                                        Var "l2")])))),
+                        Call (Var "rev", List [Var "l", Var "E"]))),
+                    Call (Var "reverse", Prim2 ("::",ConI 1,Prim2 ("::",ConI 2,Prim2 ("::",ConI 3,Var "E")))))));
+
+(* run expr0;
 run expr1;
 run expr2;
 run expr0;
@@ -82,9 +210,29 @@ run expr14;
 run expr14;
 run expr15;
 run expr16;
-run expr17;
+run expr17; 
 run expr18;
 run expr19;
 run expr20;
 run expr21;
 run expr22;
+run expr23;
+run expr24;
+run expr25;
+run expr26;
+run expr27;
+run expr28;
+run expr29;
+run expr30;
+run expr31;
+run expr32; *)
+(* run expr33; *)
+(* run expr34;
+run expr35; *)
+(* run expr36; *)
+(* run expr38;
+run expr39; 
+run expr41;*)
+(* run expr37; *)
+
+run expr37;
