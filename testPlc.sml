@@ -1,3 +1,5 @@
+use "Plc.sml";
+
 
 val e = fromString "fun rec f1(Int x):Int = x + 1; f1(12)";
 run e;
