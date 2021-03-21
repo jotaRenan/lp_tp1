@@ -79,7 +79,7 @@ fun teval(e: expr) (ro: plcType env) : plcType =
                 val mayBeFunType = lookup ro e2;
                 val t1 = teval e1 ro;
             in 
-                case mayBeFunType of FunT(argT, retT) => if t1 = argT then retT else raise  CallTypeMisM 
+                case mayBeFunType of FunT(argT, retT) => if t1 = argT then retT else raise CallTypeMisM 
                     | _ => raise NotFunc
             end
         | Call(Call a, e1) => 
